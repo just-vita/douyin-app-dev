@@ -25,6 +25,11 @@ public interface UsersService extends IService<Users> {
     /**
      * 修改用户信息
      */
+    Users updateUserInfo(UpdatedUserBO updatedUserBO);
+
+    /**
+     * 根据类型修改用户信息
+     */
     Users updateUserInfo(UpdatedUserBO updatedUserBO, Integer type);
 }
 

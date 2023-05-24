@@ -6,13 +6,19 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.web.multipart.MultipartFile;
 import top.vita.bo.UpdatedUserBO;
+import top.vita.config.MinIOConfig;
+import top.vita.enums.FileTypeEnum;
 import top.vita.enums.UserInfoModifyType;
+import top.vita.exceptions.GraceException;
 import top.vita.grace.result.GraceJSONResult;
+import top.vita.grace.result.ResponseStatusEnum;
 import top.vita.pojo.Users;
 import top.vita.service.UsersService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import top.vita.utils.MinIOUtils;
 import top.vita.vo.UsersVo;
 
 /**
@@ -28,6 +34,8 @@ public class UsersController extends BaseInfoProperties{
 
     @Autowired
     private UsersService usersService;
+    @Autowired
+    private MinIOConfig minIOConfig;
 
     @ApiOperation("获取用户信息接口")
     @GetMapping("/query")
@@ -78,4 +86,36 @@ public class UsersController extends BaseInfoProperties{
         Users user = usersService.updateUserInfo(updatedUserBO, type);
         return GraceJSONResult.ok(user);
     }
+
+    @ApiOperation("修改用户头像/背景接口")
+    @PostMapping("/modifyImage")
+    public GraceJSONResult modifyImage(@RequestParam String userId,
+                                       @RequestParam Integer type,
+                                       MultipartFile file) throws Exception {
+        // 类型有问题
+        if (FileTypeEnum.BGIMG.type.equals(type) && FileTypeEnum.FACE.type.equals(type)) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.FILE_UPLOAD_FAILD);
+        }
+        String filename = file.getOriginalFilename();
+        // 上传文件
+        MinIOUtils.uploadFile(minIOConfig.getBucketName(),
+                filename,
+                file.getInputStream());
+        // 拼接url
+        String imgUrl = minIOConfig.getFileHost() + "/" +
+                minIOConfig.getBucketName() + "/" +
+                filename;
+        UpdatedUserBO updatedUserBO = new UpdatedUserBO();
+        updatedUserBO.setId(userId);
+        if (FileTypeEnum.BGIMG.type.equals(type)){
+            updatedUserBO.setBgImg(imgUrl);
+        } else {
+            updatedUserBO.setFace(imgUrl);
+        }
+        Users users = usersService.updateUserInfo(updatedUserBO);
+        return GraceJSONResult.ok(users);
+    }
+
+
+
 }
