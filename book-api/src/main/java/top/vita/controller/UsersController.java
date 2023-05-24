@@ -6,6 +6,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import top.vita.bo.UpdatedUserBO;
+import top.vita.enums.UserInfoModifyType;
 import top.vita.grace.result.GraceJSONResult;
 import top.vita.pojo.Users;
 import top.vita.service.UsersService;
@@ -66,5 +68,14 @@ public class UsersController extends BaseInfoProperties{
         usersVO.setMyFansCounts(myFansCounts);
         usersVO.setTotalLikeMeCounts(totalLikeMeCounts);
         return GraceJSONResult.ok(usersVO);
+    }
+
+    @ApiOperation("修改用户信息接口")
+    @PostMapping("/modifyUserInfo")
+    public GraceJSONResult modifyUserInfo(@RequestBody UpdatedUserBO updatedUserBO,
+                                          @RequestParam Integer type) {
+        UserInfoModifyType.checkUserInfoTypeIsRight(type);
+        Users user = usersService.updateUserInfo(updatedUserBO, type);
+        return GraceJSONResult.ok(user);
     }
 }

@@ -2,10 +2,15 @@ package top.vita.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.n3r.idworker.Sid;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import top.vita.bo.UpdatedUserBO;
 import top.vita.enums.Sex;
+import top.vita.enums.UserInfoModifyType;
 import top.vita.enums.YesOrNo;
+import top.vita.exceptions.GraceException;
+import top.vita.grace.result.ResponseStatusEnum;
 import top.vita.pojo.Users;
 import top.vita.mapper.UsersMapper;
 import top.vita.service.UsersService;
@@ -65,6 +70,45 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
         save(user);
 
         return user;
+    }
+
+    @Override
+    public Users updateUserInfo(UpdatedUserBO updatedUserBO, Integer type) {
+        if (UserInfoModifyType.NICKNAME.type.equals(type)) {
+            // 修改名称时要判断是否有重复
+            Integer count = lambdaQuery()
+                    .eq(Users::getNickname, updatedUserBO.getNickname())
+                    .count();
+            if (count != 0) {
+                GraceException.display(ResponseStatusEnum.USER_INFO_UPDATED_NICKNAME_EXIST_ERROR);
+            }
+        } else if (UserInfoModifyType.IMOOCNUM.type.equals(type)) {
+            // 修改账户号码时要判断是否有重复
+            Integer count = lambdaQuery()
+                    .eq(Users::getImoocNum, updatedUserBO.getImoocNum())
+                    .count();
+            if (count != 0) {
+                GraceException.display(ResponseStatusEnum.USER_INFO_UPDATED_NICKNAME_EXIST_ERROR);
+            }
+            // 如果不可修改，就返回错误信息
+            Users tempUser =  getById(updatedUserBO.getId());
+            if (YesOrNo.NO.type.equals(tempUser.getCanImoocNumBeUpdated())) {
+                GraceException.display(ResponseStatusEnum.USER_INFO_CANT_UPDATED_IMOOCNUM_ERROR);
+            }
+            // 如果可以修改，那么修改完这次就不能再修改了
+            updatedUserBO.setCanImoocNumBeUpdated(YesOrNo.NO.type);
+        }
+        return updateUserInfo(updatedUserBO);
+    }
+
+    public Users updateUserInfo(UpdatedUserBO updatedUserBO) {
+        Users users = new Users();
+        BeanUtils.copyProperties(updatedUserBO, users);
+        boolean flag = updateById(users);
+        if (!flag) {
+            GraceException.display(ResponseStatusEnum.USER_UPDATE_ERROR);
+        }
+        return getById(updatedUserBO.getId());
     }
 }
 

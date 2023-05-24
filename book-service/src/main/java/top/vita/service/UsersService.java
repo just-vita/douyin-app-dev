@@ -1,6 +1,7 @@
 package top.vita.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import top.vita.bo.UpdatedUserBO;
 import top.vita.pojo.Users;
 
 /**
@@ -20,5 +21,10 @@ public interface UsersService extends IService<Users> {
      * 创建用户
      */
     Users createUser(String mobile);
+
+    /**
+     * 修改用户信息
+     */
+    Users updateUserInfo(UpdatedUserBO updatedUserBO, Integer type);
 }
 
