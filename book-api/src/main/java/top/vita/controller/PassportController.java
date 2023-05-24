@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
  * @Author vita
  * @Date 2023/5/23 23:39
  */
-@Api(tags = "短信验证接口")
+@Api(tags = "通行证")
 @RestController
 public class PassportController extends BaseInfoProperties {
 
