@@ -33,8 +33,8 @@ public class PassportController extends BaseInfoProperties {
     @ApiOperation("短信验证接口")
     @PostMapping("/getSMSCode")
     public GraceJSONResult getSMSCode(@RequestParam String mobile,
-                                      HttpServletRequest request){
-        if (StringUtils.isBlank(mobile)){
+                                      HttpServletRequest request) {
+        if (StringUtils.isBlank(mobile)) {
             return GraceJSONResult.ok();
         }
 
@@ -56,7 +56,7 @@ public class PassportController extends BaseInfoProperties {
         String smsCode = registLoginBO.getSmsCode();
         // 判断验证码是否正确
         String code = redis.get(MOBILE_SMSCODE + ":" + mobile);
-        if (StringUtils.isBlank(code) || !code.equalsIgnoreCase(smsCode)){
+        if (StringUtils.isBlank(code) || !code.equalsIgnoreCase(smsCode)) {
             return GraceJSONResult.errorCustom(ResponseStatusEnum.SMS_CODE_ERROR);
         }
         // 判断用户是否存在，不存在则创建
@@ -75,5 +75,12 @@ public class PassportController extends BaseInfoProperties {
         BeanUtils.copyProperties(user, userVo);
         userVo.setUserToken(userToken);
         return GraceJSONResult.ok(userVo);
+    }
+
+    @ApiOperation("退出接口")
+    @PostMapping("/logout")
+    public GraceJSONResult login(@RequestParam String userId) {
+        redis.del(REDIS_USER_TOKEN + ":" + userId);
+        return GraceJSONResult.ok();
     }
 }
