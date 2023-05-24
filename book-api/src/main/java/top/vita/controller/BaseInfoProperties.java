@@ -1,5 +1,6 @@
 package top.vita.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import top.vita.grace.utils.RedisOperator;
 
 /**
@@ -7,6 +8,7 @@ import top.vita.grace.utils.RedisOperator;
  * @Date 2023/5/24 14:11
  */
 public class BaseInfoProperties {
+    @Autowired
     public RedisOperator redis;
 
     public static final String MOBILE_SMSCODE = "mobile:smscode";
