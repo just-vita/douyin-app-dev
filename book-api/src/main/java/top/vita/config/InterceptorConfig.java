@@ -1,4 +1,4 @@
-package top.vita;
+package top.vita.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

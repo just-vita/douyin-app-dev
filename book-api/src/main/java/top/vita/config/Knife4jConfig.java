@@ -1,4 +1,4 @@
-package top.vita;
+package top.vita.config;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
