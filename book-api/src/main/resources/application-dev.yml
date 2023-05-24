@@ -4,7 +4,7 @@ server:
 spring:
   datasource:                                     # 数据源的相关配置
     type: com.zaxxer.hikari.HikariDataSource      # 数据源的类型，可以更改为其他的数据源配置，比如druid
-    driver-class-name: com.mysql.jdbc.Driver      # mysql/MariaDB 的数据库驱动类名称
+    driver-class-name: com.mysql.cj.jdbc.Driver     # mysql/MariaDB 的数据库驱动类名称
     url: jdbc:mysql://localhost:3306/imooc-red-book-dev?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
     username: root
     password: root
@@ -21,7 +21,7 @@ spring:
     host: localhost
     port: 6379
     database: 0
-    password: itzixi
+#    password: itzixi
   data:
     mongodb:
       uri: mongodb://root:root@localhost:27017
