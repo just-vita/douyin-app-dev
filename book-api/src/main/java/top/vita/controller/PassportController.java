@@ -12,7 +12,7 @@ import top.vita.grace.result.ResponseStatusEnum;
 import top.vita.pojo.Users;
 import top.vita.service.impl.UsersServiceImpl;
 import top.vita.utils.IPUtil;
-import top.vita.vo.UserVo;
+import top.vita.vo.UsersVo;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -22,7 +22,7 @@ import java.util.UUID;
  * @Author vita
  * @Date 2023/5/23 23:39
  */
-@Api(tags = "通行证")
+@Api(tags = "认证模块")
 @RestController
 @RequestMapping("/passport")
 public class PassportController extends BaseInfoProperties {
@@ -71,15 +71,15 @@ public class PassportController extends BaseInfoProperties {
         // 登录成功后删除短信验证码的缓存
         redis.del(MOBILE_SMSCODE + ":" + mobile);
         // 构建返回对象
-        UserVo userVo = new UserVo();
-        BeanUtils.copyProperties(user, userVo);
-        userVo.setUserToken(userToken);
-        return GraceJSONResult.ok(userVo);
+        UsersVo usersVo = new UsersVo();
+        BeanUtils.copyProperties(user, usersVo);
+        usersVo.setUserToken(userToken);
+        return GraceJSONResult.ok(usersVo);
     }
 
     @ApiOperation("退出接口")
     @PostMapping("/logout")
-    public GraceJSONResult login(@RequestParam String userId) {
+    public GraceJSONResult logout(@RequestParam String userId) {
         redis.del(REDIS_USER_TOKEN + ":" + userId);
         return GraceJSONResult.ok();
     }

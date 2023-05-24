@@ -12,6 +12,9 @@ import top.vita.pojo.Users;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserVo extends Users {
+public class UsersVo extends Users {
     private String userToken;
+    private Integer myFollowsCounts;
+    private Integer myFansCounts;
+    private Integer totalLikeMeCounts;
 }

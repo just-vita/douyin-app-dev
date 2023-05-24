@@ -26,7 +26,7 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
     @Autowired
     private Sid sid;
 
-    private static final String USER_FACE1 = "http://122.152.205.72:88/group1/M00/00/05/CpoxxF6ZUySASMbOAABBAXhjY0Y649.png";
+    private static final String USER_FACE1 = "https://learn-1312191491.cos.ap-beijing.myqcloud.com/img%2F%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%2F%E5%A4%B4%E5%83%8F%2F9.jpg";
 
     @Override
     public Users queryUserIsExist(String mobile) {
