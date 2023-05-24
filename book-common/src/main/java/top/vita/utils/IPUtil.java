@@ -1,4 +1,4 @@
-package top.vita.grace.utils;
+package top.vita.utils;
 
 import javax.servlet.http.HttpServletRequest;
 

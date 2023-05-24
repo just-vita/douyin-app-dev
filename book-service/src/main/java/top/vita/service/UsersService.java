@@ -11,5 +11,14 @@ import top.vita.pojo.Users;
  */
 public interface UsersService extends IService<Users> {
 
+    /**
+     * 判断用户是否存在
+     */
+    Users queryUserIsExist(String mobile);
+
+    /**
+     * 创建用户
+     */
+    Users createUser(String mobile);
 }
 

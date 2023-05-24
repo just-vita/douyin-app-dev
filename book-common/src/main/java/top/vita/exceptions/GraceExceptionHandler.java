@@ -1,4 +1,4 @@
-package top.vita.grace.exceptions;
+package top.vita.exceptions;
 
 import top.vita.grace.result.GraceJSONResult;
 import top.vita.grace.result.ResponseStatusEnum;

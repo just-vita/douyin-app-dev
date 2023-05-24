@@ -1,4 +1,4 @@
-package top.vita.grace.utils;
+package top.vita.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;

@@ -3,9 +3,9 @@ package top.vita.interceptor;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 import top.vita.controller.BaseInfoProperties;
-import top.vita.grace.exceptions.GraceException;
+import top.vita.exceptions.GraceException;
 import top.vita.grace.result.ResponseStatusEnum;
-import top.vita.grace.utils.IPUtil;
+import top.vita.utils.IPUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

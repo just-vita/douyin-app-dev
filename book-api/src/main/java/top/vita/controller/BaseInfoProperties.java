@@ -1,7 +1,7 @@
 package top.vita.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import top.vita.grace.utils.RedisOperator;
+import top.vita.utils.RedisOperator;
 
 /**
  * @Author vita
