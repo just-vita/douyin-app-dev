@@ -67,4 +67,11 @@ public class FansController extends BaseInfoProperties {
         return GraceJSONResult.ok();
     }
 
+    @ApiOperation("查询是否关注该用户接口")
+    @GetMapping("/queryDoIFollowVloger")
+    public GraceJSONResult queryDoIFollowVloger(@RequestParam String myId,
+                                                @RequestParam("vlogerId") String toId){
+        return GraceJSONResult.ok(fansService.isFollowingMe(myId, toId));
+    }
+
 }

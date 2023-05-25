@@ -32,6 +32,10 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void doFollow(String myId, String toId) {
+        // 如果已经关注对方，则直接返回
+        if (isFollowingMe(toId, myId)){
+            return;
+        }
         Fans fans = new Fans();
         fans.setId(sid.nextShort());
         fans.setFanId(myId);
@@ -61,11 +65,16 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
     /**
      * 判断对方是否是我的粉丝
      */
-    private boolean isFollowingMe(String myId, String toId) {
-        return lambdaQuery()
-                .eq(Fans::getFanId, toId)
-                .eq(Fans::getVlogerId, myId)
-                .count() == 1;
+    public boolean isFollowingMe(String myId, String toId) {
+        String isFollow = redis.get(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + toId + ":" + myId);
+        if ("1".equals(isFollow)){
+            return true;
+        }
+        return false;
+//        return lambdaQuery()
+//                .eq(Fans::getFanId, toId)
+//                .eq(Fans::getVlogerId, myId)
+//                .count() == 1;
     }
 
     @Override
