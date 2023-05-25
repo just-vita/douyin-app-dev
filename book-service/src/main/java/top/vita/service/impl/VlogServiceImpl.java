@@ -3,8 +3,6 @@ package top.vita.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.idworker.Sid;
 import org.springframework.beans.BeanUtils;
@@ -18,7 +16,6 @@ import top.vita.pojo.Vlog;
 import top.vita.mapper.VlogMapper;
 import top.vita.service.MyLikedVlogService;
 import top.vita.service.VlogService;
-import top.vita.service.base.BaseInfoProperties;
 import top.vita.utils.PagedGridResult;
 import top.vita.utils.RedisOperator;
 import top.vita.vo.IndexVlogVO;
@@ -68,7 +65,8 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
     }
 
     @Override
-    public PagedGridResult getIndexVlogList(String search,
+    public PagedGridResult getIndexVlogList(String userId,
+                                            String search,
                                             Integer page,
                                             Integer pageSize) {
         PageHelper.startPage(page, pageSize);
@@ -77,7 +75,23 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
             map.put("search", search);
         }
         List<IndexVlogVO> list = vlogMapper.getIndexVlogList(map);
+        // 设置是否已经点赞了这个视频
+        for (IndexVlogVO vlogVO : list) {
+            boolean isLiked = isLikedVlog(userId, vlogVO.getVlogId());
+            vlogVO.setDoILikeThisVlog(isLiked);
+        }
         return setterPagedGrid(list, page);
+    }
+
+    /**
+     * 判断是否已经点赞了这个视频
+     */
+    private boolean isLikedVlog(String userId, String vlogId) {
+        String isLiked = redis.get(REDIS_USER_LIKE_VLOG + ":" + userId + ":" + vlogId);
+        if ("1".equals(isLiked)) {
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -129,7 +143,7 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         redis.increment(REDIS_VLOGER_BE_LIKED_COUNTS + ":" + vlogerId, 1);
         redis.increment(REDIS_VLOG_BE_LIKED_COUNTS + ":" + vlogId, 1);
         // 保存用户和视频的点赞关系
-        redis.set(REDIS_USER_LIKE_VLOG + ":" + userId + ":" + vlogerId, "1");
+        redis.set(REDIS_USER_LIKE_VLOG + ":" + userId + ":" + vlogId, "1");
     }
 
     @Override
@@ -144,7 +158,7 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         redis.decrement(REDIS_VLOGER_BE_LIKED_COUNTS + ":" + vlogerId, 1);
         redis.decrement(REDIS_VLOG_BE_LIKED_COUNTS + ":" + vlogId, 1);
         // 保存用户和视频的点赞关系
-        redis.del(REDIS_USER_LIKE_VLOG + ":" + userId + ":" + vlogerId);
+        redis.del(REDIS_USER_LIKE_VLOG + ":" + userId + ":" + vlogId);
     }
 }
 

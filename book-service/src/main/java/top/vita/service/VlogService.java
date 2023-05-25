@@ -15,7 +15,7 @@ public interface VlogService extends IService<Vlog> {
 
     void createVlog(VlogBO vlogBO);
 
-    PagedGridResult getIndexVlogList(String search, Integer page, Integer pageSize);
+    PagedGridResult getIndexVlogList(String userId, String search, Integer page, Integer pageSize);
 
     Object getVlogDetailById(String vlogId);
 

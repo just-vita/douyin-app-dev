@@ -35,10 +35,11 @@ public class VlogController{
 
     @ApiOperation("首页视频列表接口")
     @GetMapping("/indexList")
-    public GraceJSONResult indexList(@RequestParam(defaultValue = "") String search,
+    public GraceJSONResult indexList(@RequestParam String userId,
+                                     @RequestParam(defaultValue = "") String search,
                                      @RequestParam(defaultValue = "1") Integer page,
                                      @RequestParam(defaultValue = "10") Integer pageSize) {
-        PagedGridResult indexVlogList = vlogService.getIndexVlogList(search, page, pageSize);
+        PagedGridResult indexVlogList = vlogService.getIndexVlogList(userId, search, page, pageSize);
         return GraceJSONResult.ok(indexVlogList);
     }
 
