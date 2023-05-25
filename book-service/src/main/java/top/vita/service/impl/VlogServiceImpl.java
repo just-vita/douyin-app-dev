@@ -78,6 +78,15 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         return null;
     }
 
+    @Override
+    public void changeToPublicOrPrivate(String userId, String vlogId, Integer type) {
+        lambdaUpdate()
+                .eq(Vlog::getId, vlogId)
+                .eq(Vlog::getVlogerId, userId)
+                .set(Vlog::getIsPrivate, type)
+                .update();
+    }
+
     public PagedGridResult setterPagedGrid(List<?> list,
                                            Integer page) {
         PageInfo<?> pageList = new PageInfo<>(list);

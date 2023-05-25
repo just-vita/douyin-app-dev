@@ -5,6 +5,7 @@ package top.vita.controller;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import top.vita.bo.VlogBO;
+import top.vita.enums.YesOrNo;
 import top.vita.grace.result.GraceJSONResult;
 import top.vita.service.VlogService;
 import org.springframework.web.bind.annotation.*;
@@ -44,7 +45,23 @@ public class VlogController{
     @ApiOperation("视频详情接口")
     @GetMapping("/detail")
     public GraceJSONResult detail(@RequestParam(defaultValue = "") String userId,
-                                     @RequestParam String vlogId) {
+                                  @RequestParam String vlogId) {
         return GraceJSONResult.ok(vlogService.getVlogDetailById(vlogId));
+    }
+
+    @ApiOperation("修改视频为私密接口")
+    @PostMapping("/changeToPrivate")
+    public GraceJSONResult changeToPrivate(@RequestParam String userId,
+                                           @RequestParam String vlogId) {
+        vlogService.changeToPublicOrPrivate(userId, vlogId, YesOrNo.YES.type);
+        return GraceJSONResult.ok();
+    }
+
+    @ApiOperation("修改视频为公开接口")
+    @PostMapping("/changeToPublic")
+    public GraceJSONResult changeToPublic(@RequestParam String userId,
+                                           @RequestParam String vlogId) {
+        vlogService.changeToPublicOrPrivate(userId, vlogId, YesOrNo.NO.type);
+        return GraceJSONResult.ok();
     }
 }
