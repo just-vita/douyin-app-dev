@@ -1,6 +1,7 @@
 package top.vita.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.pagehelper.PageHelper;
 import org.n3r.idworker.Sid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,9 +10,15 @@ import top.vita.enums.YesOrNo;
 import top.vita.pojo.Fans;
 import top.vita.mapper.FansMapper;
 import top.vita.service.FansService;
+import top.vita.utils.PagedGridResult;
 import top.vita.utils.RedisOperator;
+import top.vita.vo.FansVO;
 
-import static top.vita.base.BaseInfoProperties.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static top.vita.service.base.BaseInfoProperties.*;
 
 /**
  * 粉丝表
@@ -28,6 +35,8 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
     private Sid sid;
     @Autowired
     private RedisOperator redis;
+    @Autowired
+    private FansMapper fansMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -71,10 +80,15 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
             return true;
         }
         return false;
-//        return lambdaQuery()
-//                .eq(Fans::getFanId, toId)
-//                .eq(Fans::getVlogerId, myId)
-//                .count() == 1;
+    }
+
+    @Override
+    public PagedGridResult queryMyFollows(String myId, Integer page, Integer pageSize) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("myId", myId);
+        PageHelper.startPage(page, pageSize);
+        List<FansVO> list = fansMapper.queryMyFollows(map);
+        return setterPagedGrid(list, page);
     }
 
     @Override

@@ -2,6 +2,10 @@ package top.vita.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import top.vita.pojo.Fans;
+import top.vita.utils.PagedGridResult;
+import top.vita.vo.FansVO;
+
+import java.util.List;
 
 /**
  * 粉丝表
@@ -18,5 +22,7 @@ public interface FansService extends IService<Fans> {
     void doCancel(String myId, String toId);
 
     boolean isFollowingMe(String myId, String toId);
+
+    PagedGridResult queryMyFollows(String myId, Integer page, Integer pageSize);
 }
 

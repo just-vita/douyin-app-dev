@@ -2,7 +2,12 @@ package top.vita.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 import top.vita.pojo.Fans;
+import top.vita.vo.FansVO;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 粉丝表
@@ -14,6 +19,8 @@ import top.vita.pojo.Fans;
  */
 @Mapper
 public interface FansMapper extends BaseMapper<Fans> {
+
+    List<FansVO> queryMyFollows(@Param("paramMap") Map<String, Object> map);
 
 }
 

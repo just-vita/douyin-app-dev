@@ -1,7 +1,11 @@
-package top.vita.base;
+package top.vita.service.base;
 
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import top.vita.utils.PagedGridResult;
 import top.vita.utils.RedisOperator;
+
+import java.util.List;
 
 /**
  * @Author vita
@@ -36,4 +40,14 @@ public class BaseInfoProperties {
     // 用户是否喜欢/点赞视频，取代数据库的关联关系，1：喜欢，0：不喜欢（默认） redis_user_like_vlog:{userId}:{vlogId}
     public static final String REDIS_USER_LIKE_VLOG = "redis_user_like_vlog";
 
+    public static PagedGridResult setterPagedGrid(List<?> list,
+                                                  Integer page) {
+        PageInfo<?> pageList = new PageInfo<>(list);
+        PagedGridResult gridResult = new PagedGridResult();
+        gridResult.setRows(list);
+        gridResult.setPage(page);
+        gridResult.setRecords(pageList.getTotal());
+        gridResult.setTotal(pageList.getPages());
+        return gridResult;
+    }
 }

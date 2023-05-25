@@ -14,6 +14,7 @@ import top.vita.enums.YesOrNo;
 import top.vita.pojo.Vlog;
 import top.vita.mapper.VlogMapper;
 import top.vita.service.VlogService;
+import top.vita.service.base.BaseInfoProperties;
 import top.vita.utils.PagedGridResult;
 import top.vita.vo.IndexVlogVO;
 
@@ -21,6 +22,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static top.vita.service.base.BaseInfoProperties.setterPagedGrid;
 
 /**
  * 短视频表(Vlog)表服务实现类
@@ -102,17 +105,6 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
                 .eq(Vlog::getIsPrivate, type)
                 .list();
         return setterPagedGrid(list, page);
-    }
-
-    public PagedGridResult setterPagedGrid(List<?> list,
-                                           Integer page) {
-        PageInfo<?> pageList = new PageInfo<>(list);
-        PagedGridResult gridResult = new PagedGridResult();
-        gridResult.setRows(list);
-        gridResult.setPage(page);
-        gridResult.setRecords(pageList.getTotal());
-        gridResult.setTotal(pageList.getPages());
-        return gridResult;
     }
 }
 

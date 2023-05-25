@@ -7,7 +7,7 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.multipart.MultipartFile;
-import top.vita.base.BaseInfoProperties;
+import top.vita.service.base.BaseInfoProperties;
 import top.vita.bo.UpdatedUserBO;
 import top.vita.config.MinIOConfig;
 import top.vita.enums.FileTypeEnum;

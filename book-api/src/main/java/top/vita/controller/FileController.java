@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import top.vita.base.BaseInfoProperties;
+import top.vita.service.base.BaseInfoProperties;
 import top.vita.config.MinIOConfig;
 import top.vita.grace.result.GraceJSONResult;
 import top.vita.utils.MinIOUtils;

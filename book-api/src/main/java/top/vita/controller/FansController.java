@@ -5,13 +5,17 @@ package top.vita.controller;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
-import top.vita.base.BaseInfoProperties;
+import top.vita.service.base.BaseInfoProperties;
 import top.vita.grace.result.GraceJSONResult;
 import top.vita.grace.result.ResponseStatusEnum;
 import top.vita.service.FansService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import top.vita.service.UsersService;
+import top.vita.utils.PagedGridResult;
+import top.vita.vo.FansVO;
+
+import java.util.List;
 
 /**
  * 粉丝表
@@ -74,4 +78,12 @@ public class FansController extends BaseInfoProperties {
         return GraceJSONResult.ok(fansService.isFollowingMe(myId, toId));
     }
 
+    @ApiOperation("关注列表接口")
+    @GetMapping("/queryMyFollows")
+    public GraceJSONResult queryMyFollows(@RequestParam String myId,
+                                          @RequestParam(defaultValue = "1") Integer page,
+                                          @RequestParam(defaultValue = "10") Integer pageSize) {
+        PagedGridResult followList = fansService.queryMyFollows(myId, page, pageSize);
+        return GraceJSONResult.ok(followList);
+    }
 }
