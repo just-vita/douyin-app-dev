@@ -13,6 +13,7 @@ import top.vita.service.FansService;
 import top.vita.utils.PagedGridResult;
 import top.vita.utils.RedisOperator;
 import top.vita.vo.FansVO;
+import top.vita.vo.VlogerVO;
 
 import java.util.HashMap;
 import java.util.List;
@@ -87,7 +88,16 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
         Map<String, Object> map = new HashMap<>();
         map.put("myId", myId);
         PageHelper.startPage(page, pageSize);
-        List<FansVO> list = fansMapper.queryMyFollows(map);
+        List<VlogerVO> list = fansMapper.queryMyFollows(map);
+        return setterPagedGrid(list, page);
+    }
+
+    @Override
+    public PagedGridResult queryMyFans(String myId, Integer page, Integer pageSize) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("myId", myId);
+        PageHelper.startPage(page, pageSize);
+        List<FansVO> list = fansMapper.queryMyFans(map);
         return setterPagedGrid(list, page);
     }
 

@@ -86,4 +86,13 @@ public class FansController extends BaseInfoProperties {
         PagedGridResult followList = fansService.queryMyFollows(myId, page, pageSize);
         return GraceJSONResult.ok(followList);
     }
+
+    @ApiOperation("粉丝列表接口")
+    @GetMapping("/queryMyFans")
+    public GraceJSONResult queryMyfans(@RequestParam String myId,
+                                       @RequestParam(defaultValue = "1") Integer page,
+                                       @RequestParam(defaultValue = "10") Integer pageSize) {
+        PagedGridResult fanList = fansService.queryMyFans(myId, page, pageSize);
+        return GraceJSONResult.ok(fanList);
+    }
 }

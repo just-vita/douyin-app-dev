@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import top.vita.pojo.Fans;
 import top.vita.vo.FansVO;
+import top.vita.vo.VlogerVO;
 
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,8 @@ import java.util.Map;
 @Mapper
 public interface FansMapper extends BaseMapper<Fans> {
 
-    List<FansVO> queryMyFollows(@Param("paramMap") Map<String, Object> map);
+    List<VlogerVO> queryMyFollows(@Param("paramMap") Map<String, Object> map);
+    List<FansVO> queryMyFans(@Param("paramMap") Map<String, Object> map);
 
 }
 
