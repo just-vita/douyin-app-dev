@@ -46,10 +46,24 @@ public class FansController extends BaseInfoProperties {
             return GraceJSONResult.errorCustom(ResponseStatusEnum.USER_NOT_EXIST_ERROR);
         }
         fansService.doFollow(myId, toId);
+        return GraceJSONResult.ok();
+    }
 
-        redis.increment(REDIS_MY_FOLLOWS_COUNTS + ":" + myId, 1);
-        redis.increment(REDIS_MY_FANS_COUNTS+ ":" + toId, 1);
-        redis.set(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + myId + ":" + toId, "1");
+    @ApiOperation("取消关注接口")
+    @PostMapping("/cancel")
+    public GraceJSONResult cancel(@RequestParam String myId,
+                                  @RequestParam("vlogerId") String toId){
+        if (StringUtils.isBlank(myId) || StringUtils.isBlank(toId)){
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.PARAMS_ERROR);
+        }
+        if (myId.equals(toId)){
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.SYSTEM_RESPONSE_NO_INFO);
+        }
+        boolean flag = usersService.checkTwoUserExists(myId, toId);
+        if (!flag){
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.USER_NOT_EXIST_ERROR);
+        }
+        fansService.doCancel(myId, toId);
         return GraceJSONResult.ok();
     }
 

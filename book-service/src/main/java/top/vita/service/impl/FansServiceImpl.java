@@ -6,8 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.vita.enums.YesOrNo;
-import top.vita.exceptions.GraceException;
-import top.vita.grace.result.ResponseStatusEnum;
 import top.vita.pojo.Fans;
 import top.vita.mapper.FansMapper;
 import top.vita.service.FansService;
@@ -34,24 +32,13 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void doFollow(String myId, String toId) {
-        // 是否已经关注过
-        Integer count = lambdaQuery()
-                .eq(Fans::getFanId, myId)
-                .eq(Fans::getVlogerId, toId)
-                .count();
-        if (count == 1){
-            GraceException.display(ResponseStatusEnum.SYSTEM_RESPONSE_NO_INFO);
-        }
         Fans fans = new Fans();
         fans.setId(sid.nextShort());
         fans.setFanId(myId);
         fans.setVlogerId(toId);
-        // 判断对方是否也是我的粉丝
-        count = lambdaQuery()
-                .eq(Fans::getFanId, toId)
-                .eq(Fans::getVlogerId, myId)
-                .count();
-        if (count == 1) {
+        // 判断对方是否是我的粉丝
+        boolean flag = isFollowingMe(myId, toId);
+        if (flag) {
             // 改为互粉状态
             fans.setIsFanFriendOfMine(YesOrNo.YES.type);
             // 将对方也改为互粉状态
@@ -60,13 +47,50 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
                     .eq(Fans::getVlogerId, myId)
                     .set(Fans::getIsFanFriendOfMine, YesOrNo.YES.type)
                     .update();
-            redis.increment(REDIS_MY_FOLLOWS_COUNTS + ":" + myId, 1);
-            redis.increment(REDIS_MY_FANS_COUNTS+ ":" + toId, 1);
-            redis.set(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + myId + ":" + toId, "1");
         } else{
             fans.setIsFanFriendOfMine(YesOrNo.NO.type);
         }
         save(fans);
+        // 将关注/粉丝量进行自增
+        redis.increment(REDIS_MY_FOLLOWS_COUNTS + ":" + myId, 1);
+        redis.increment(REDIS_MY_FANS_COUNTS+ ":" + toId, 1);
+        // 存储互关状态
+        redis.set(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + myId + ":" + toId, "1");
+    }
+
+    /**
+     * 判断对方是否是我的粉丝
+     */
+    private boolean isFollowingMe(String myId, String toId) {
+        return lambdaQuery()
+                .eq(Fans::getFanId, toId)
+                .eq(Fans::getVlogerId, myId)
+                .count() == 1;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void doCancel(String myId, String toId) {
+        // 判断对方是否是我的粉丝
+        boolean flag = isFollowingMe(myId, toId);
+        if (flag){
+            // 将对方的互关状态抹除
+            lambdaUpdate()
+                    .eq(Fans::getFanId, toId)
+                    .eq(Fans::getVlogerId, myId)
+                    .set(Fans::getIsFanFriendOfMine, YesOrNo.NO.type)
+                    .update();
+        }
+        // 删除我的关注记录
+        lambdaUpdate()
+                .eq(Fans::getFanId, myId)
+                .eq(Fans::getVlogerId, toId)
+                .remove();
+        // 将关注/粉丝量进行自减
+        redis.decrement(REDIS_MY_FOLLOWS_COUNTS + ":" + myId, 1);
+        redis.decrement(REDIS_MY_FANS_COUNTS+ ":" + toId, 1);
+        // 删除互关状态
+        redis.del(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + myId + ":" + toId);
     }
 }
 

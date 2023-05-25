@@ -14,5 +14,7 @@ import top.vita.pojo.Fans;
 public interface FansService extends IService<Fans> {
 
     void doFollow(String myId, String vlogerId);
+
+    void doCancel(String myId, String toId);
 }
 
