@@ -13,9 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import top.vita.service.UsersService;
 import top.vita.utils.PagedGridResult;
-import top.vita.vo.FansVO;
-
-import java.util.List;
 
 /**
  * 粉丝表
@@ -75,7 +72,7 @@ public class FansController extends BaseInfoProperties {
     @GetMapping("/queryDoIFollowVloger")
     public GraceJSONResult queryDoIFollowVloger(@RequestParam String myId,
                                                 @RequestParam("vlogerId") String toId){
-        return GraceJSONResult.ok(fansService.isFollowingMe(myId, toId));
+        return GraceJSONResult.ok(fansService.isFollowed(myId, toId));
     }
 
     @ApiOperation("关注列表接口")

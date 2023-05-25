@@ -43,7 +43,7 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
     @Transactional(rollbackFor = Exception.class)
     public void doFollow(String myId, String toId) {
         // 如果已经关注对方，则直接返回
-        if (isFollowingMe(toId, myId)){
+        if (isFollowed(myId, toId)){
             return;
         }
         Fans fans = new Fans();
@@ -51,7 +51,7 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
         fans.setFanId(myId);
         fans.setVlogerId(toId);
         // 判断对方是否是我的粉丝
-        boolean flag = isFollowingMe(myId, toId);
+        boolean flag = isFollowed(toId, myId);
         if (flag) {
             // 改为互粉状态
             fans.setIsFanFriendOfMine(YesOrNo.YES.type);
@@ -75,8 +75,8 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
     /**
      * 判断对方是否是我的粉丝
      */
-    public boolean isFollowingMe(String myId, String toId) {
-        String isFollow = redis.get(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + toId + ":" + myId);
+    public boolean isFollowed(String myId, String toId) {
+        String isFollow = redis.get(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + myId + ":" + toId);
         if ("1".equals(isFollow)){
             return true;
         }
@@ -98,6 +98,13 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
         map.put("myId", myId);
         PageHelper.startPage(page, pageSize);
         List<FansVO> list = fansMapper.queryMyFans(map);
+        for (FansVO fansVO : list) {
+            // 判断我有没有关注我的粉丝
+            boolean followed = isFollowed(myId, fansVO.getFanId());
+            if (followed){
+                fansVO.setFriend(true);
+            }
+        }
         return setterPagedGrid(list, page);
     }
 
@@ -105,7 +112,7 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
     @Transactional(rollbackFor = Exception.class)
     public void doCancel(String myId, String toId) {
         // 判断对方是否是我的粉丝
-        boolean flag = isFollowingMe(myId, toId);
+        boolean flag = isFollowed(toId, myId);
         if (flag){
             // 将对方的互关状态抹除
             lambdaUpdate()

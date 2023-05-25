@@ -21,7 +21,7 @@ public interface FansService extends IService<Fans> {
 
     void doCancel(String myId, String toId);
 
-    boolean isFollowingMe(String myId, String toId);
+    boolean isFollowed(String myId, String toId);
 
     PagedGridResult queryMyFollows(String myId, Integer page, Integer pageSize);
 

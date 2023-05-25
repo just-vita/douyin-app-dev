@@ -22,6 +22,7 @@ import java.util.Map;
 public interface FansMapper extends BaseMapper<Fans> {
 
     List<VlogerVO> queryMyFollows(@Param("paramMap") Map<String, Object> map);
+
     List<FansVO> queryMyFans(@Param("paramMap") Map<String, Object> map);
 
 }
