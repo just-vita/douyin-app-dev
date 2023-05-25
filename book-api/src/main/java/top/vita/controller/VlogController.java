@@ -60,8 +60,35 @@ public class VlogController{
     @ApiOperation("修改视频为公开接口")
     @PostMapping("/changeToPublic")
     public GraceJSONResult changeToPublic(@RequestParam String userId,
-                                           @RequestParam String vlogId) {
+                                          @RequestParam String vlogId) {
         vlogService.changeToPublicOrPrivate(userId, vlogId, YesOrNo.NO.type);
         return GraceJSONResult.ok();
     }
+
+    @ApiOperation("个人私密视频列表接口")
+    @GetMapping("/myPrivateList")
+    public GraceJSONResult myPrivateList(@RequestParam String userId,
+                                     @RequestParam(defaultValue = "1") Integer page,
+                                     @RequestParam(defaultValue = "10") Integer pageSize) {
+        PagedGridResult myPrivateList = vlogService.getMyVlogList(userId,
+                                                                page,
+                                                                pageSize,
+                                                                YesOrNo.YES.type);
+        return GraceJSONResult.ok(myPrivateList);
+    }
+
+    @ApiOperation("个人公开视频列表接口")
+    @GetMapping("/myPublicList")
+    public GraceJSONResult myPublicList(@RequestParam String userId,
+                                         @RequestParam(defaultValue = "1") Integer page,
+                                         @RequestParam(defaultValue = "10") Integer pageSize) {
+        PagedGridResult myPublicList = vlogService.getMyVlogList(userId,
+                                                                page,
+                                                                pageSize,
+                                                                YesOrNo.NO.type);
+        return GraceJSONResult.ok(myPublicList);
+    }
+
+
+
 }

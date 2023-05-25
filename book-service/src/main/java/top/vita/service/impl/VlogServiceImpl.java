@@ -56,7 +56,9 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
     }
 
     @Override
-    public PagedGridResult getIndexVlogList(String search, Integer page, Integer pageSize) {
+    public PagedGridResult getIndexVlogList(String search,
+                                            Integer page,
+                                            Integer pageSize) {
         PageHelper.startPage(page, pageSize);
         Map<String, Object> map = new HashMap<>();
         if (StringUtils.isNotBlank(search)){
@@ -79,12 +81,27 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
     }
 
     @Override
-    public void changeToPublicOrPrivate(String userId, String vlogId, Integer type) {
+    public void changeToPublicOrPrivate(String userId,
+                                        String vlogId,
+                                        Integer type) {
         lambdaUpdate()
                 .eq(Vlog::getId, vlogId)
                 .eq(Vlog::getVlogerId, userId)
                 .set(Vlog::getIsPrivate, type)
                 .update();
+    }
+
+    @Override
+    public PagedGridResult getMyVlogList(String userId,
+                                         Integer page,
+                                         Integer pageSize,
+                                         Integer type) {
+        PageHelper.startPage(page, pageSize);
+        List<Vlog> list = lambdaQuery()
+                .eq(Vlog::getVlogerId, userId)
+                .eq(Vlog::getIsPrivate, type)
+                .list();
+        return setterPagedGrid(list, page);
     }
 
     public PagedGridResult setterPagedGrid(List<?> list,
