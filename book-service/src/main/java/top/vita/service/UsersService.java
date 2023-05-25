@@ -31,5 +31,10 @@ public interface UsersService extends IService<Users> {
      * 根据类型修改用户信息
      */
     Users updateUserInfo(UpdatedUserBO updatedUserBO, Integer type);
+
+    /**
+     * 判断两个用户是否都存在
+     */
+    boolean checkTwoUserExists(String myId, String vlogerId);
 }
 

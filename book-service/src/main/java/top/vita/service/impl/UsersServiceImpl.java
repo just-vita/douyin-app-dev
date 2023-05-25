@@ -101,6 +101,15 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
         return updateUserInfo(updatedUserBO);
     }
 
+    @Override
+    public boolean checkTwoUserExists(String userId1, String userId2) {
+        return lambdaQuery()
+                .eq(Users::getId, userId1)
+                .or()
+                .eq(Users::getId, userId2)
+                .count() == 2;
+    }
+
     public Users updateUserInfo(UpdatedUserBO updatedUserBO) {
         Users users = new Users();
         BeanUtils.copyProperties(updatedUserBO, users);
