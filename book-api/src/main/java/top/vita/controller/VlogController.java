@@ -98,4 +98,13 @@ public class VlogController{
         return GraceJSONResult.ok();
     }
 
+    @ApiOperation("取消点赞接口")
+    @PostMapping("/unlike")
+    public GraceJSONResult unlike(@RequestParam String userId,
+                                  @RequestParam String vlogerId,
+                                  @RequestParam String vlogId) {
+        vlogService.unlike(userId, vlogerId, vlogId);
+        return GraceJSONResult.ok();
+    }
+
 }

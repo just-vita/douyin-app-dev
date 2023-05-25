@@ -25,5 +25,8 @@ public interface VlogService extends IService<Vlog> {
 
     void like(String userId, String vlogerId, String vlogId);
 
+    void unlike(String userId, String vlogerId, String vlogId);
+
+
 }
 

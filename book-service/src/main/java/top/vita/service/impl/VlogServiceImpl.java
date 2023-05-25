@@ -1,5 +1,6 @@
 package top.vita.service.impl;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -9,6 +10,7 @@ import org.n3r.idworker.Sid;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import top.vita.bo.VlogBO;
 import top.vita.enums.YesOrNo;
 import top.vita.pojo.MyLikedVlog;
@@ -106,15 +108,16 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
                                          Integer page,
                                          Integer pageSize,
                                          Integer type) {
-        PageHelper.startPage(page, pageSize);
-        List<Vlog> list = lambdaQuery()
+        Page<Vlog> page_ = new Page<>();
+        Page<Vlog> vlogPage = lambdaQuery()
                 .eq(Vlog::getVlogerId, userId)
                 .eq(Vlog::getIsPrivate, type)
-                .list();
-        return setterPagedGrid(list, page);
+                .page(page_);
+        return setterPagedGrid(vlogPage.getRecords(), page);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void like(String userId, String vlogerId, String vlogId) {
         MyLikedVlog myLikedVlog = new MyLikedVlog();
         myLikedVlog.setId(sid.nextShort());
@@ -127,6 +130,21 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         redis.increment(REDIS_VLOG_BE_LIKED_COUNTS + ":" + vlogId, 1);
         // 保存用户和视频的点赞关系
         redis.set(REDIS_USER_LIKE_VLOG + ":" + userId + ":" + vlogerId, "1");
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void unlike(String userId, String vlogerId, String vlogId) {
+        myLikedVlogService.lambdaUpdate()
+                .eq(MyLikedVlog::getUserId, userId)
+                .eq(MyLikedVlog::getVlogId, vlogId)
+                .remove();
+
+        // 增加视频总赞数和博主总赞数
+        redis.decrement(REDIS_VLOGER_BE_LIKED_COUNTS + ":" + vlogerId, 1);
+        redis.decrement(REDIS_VLOG_BE_LIKED_COUNTS + ":" + vlogId, 1);
+        // 保存用户和视频的点赞关系
+        redis.del(REDIS_USER_LIKE_VLOG + ":" + userId + ":" + vlogerId);
     }
 }
 
