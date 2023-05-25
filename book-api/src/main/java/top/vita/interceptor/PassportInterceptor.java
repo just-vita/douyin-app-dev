@@ -2,7 +2,7 @@ package top.vita.interceptor;
 
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-import top.vita.controller.BaseInfoProperties;
+import top.vita.base.BaseInfoProperties;
 import top.vita.exceptions.GraceException;
 import top.vita.grace.result.ResponseStatusEnum;
 import top.vita.utils.IPUtil;

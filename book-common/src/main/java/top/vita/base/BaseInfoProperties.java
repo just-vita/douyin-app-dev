@@ -1,4 +1,4 @@
-package top.vita.controller;
+package top.vita.base;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import top.vita.utils.RedisOperator;

@@ -5,6 +5,7 @@ package top.vita.controller;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
+import top.vita.base.BaseInfoProperties;
 import top.vita.grace.result.GraceJSONResult;
 import top.vita.grace.result.ResponseStatusEnum;
 import top.vita.service.FansService;
@@ -23,7 +24,7 @@ import top.vita.service.UsersService;
 @Api(tags = "粉丝模块")
 @RestController
 @RequestMapping("/fans")
-public class FansController{
+public class FansController extends BaseInfoProperties {
 
     @Autowired
     private FansService fansService;
@@ -33,18 +34,22 @@ public class FansController{
     @ApiOperation("关注用户接口")
     @PostMapping("/follow")
     public GraceJSONResult follow(@RequestParam String myId,
-                                  @RequestParam String vlogerId){
-        if (StringUtils.isBlank(myId) || StringUtils.isBlank(vlogerId)){
+                                  @RequestParam("vlogerId") String toId){
+        if (StringUtils.isBlank(myId) || StringUtils.isBlank(toId)){
             return GraceJSONResult.errorCustom(ResponseStatusEnum.PARAMS_ERROR);
         }
-        if (myId.equals(vlogerId)){
+        if (myId.equals(toId)){
             return GraceJSONResult.errorCustom(ResponseStatusEnum.SYSTEM_RESPONSE_NO_INFO);
         }
-        boolean flag = usersService.checkTwoUserExists(myId, vlogerId);
+        boolean flag = usersService.checkTwoUserExists(myId, toId);
         if (!flag){
             return GraceJSONResult.errorCustom(ResponseStatusEnum.USER_NOT_EXIST_ERROR);
         }
-        fansService.doFollow(myId, vlogerId);
+        fansService.doFollow(myId, toId);
+
+        redis.increment(REDIS_MY_FOLLOWS_COUNTS + ":" + myId, 1);
+        redis.increment(REDIS_MY_FANS_COUNTS+ ":" + toId, 1);
+        redis.set(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + myId + ":" + toId, "1");
         return GraceJSONResult.ok();
     }
 

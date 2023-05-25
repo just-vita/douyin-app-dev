@@ -7,11 +7,11 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.multipart.MultipartFile;
+import top.vita.base.BaseInfoProperties;
 import top.vita.bo.UpdatedUserBO;
 import top.vita.config.MinIOConfig;
 import top.vita.enums.FileTypeEnum;
 import top.vita.enums.UserInfoModifyType;
-import top.vita.exceptions.GraceException;
 import top.vita.grace.result.GraceJSONResult;
 import top.vita.grace.result.ResponseStatusEnum;
 import top.vita.pojo.Users;
@@ -30,7 +30,7 @@ import top.vita.vo.UsersVo;
 @Api(tags = "用户信息模块")
 @RestController
 @RequestMapping("/userInfo")
-public class UsersController extends BaseInfoProperties{
+public class UsersController extends BaseInfoProperties {
 
     @Autowired
     private UsersService usersService;

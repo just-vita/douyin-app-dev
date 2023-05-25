@@ -11,6 +11,9 @@ import top.vita.grace.result.ResponseStatusEnum;
 import top.vita.pojo.Fans;
 import top.vita.mapper.FansMapper;
 import top.vita.service.FansService;
+import top.vita.utils.RedisOperator;
+
+import static top.vita.base.BaseInfoProperties.*;
 
 /**
  * 粉丝表
@@ -25,6 +28,8 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
 
     @Autowired
     private Sid sid;
+    @Autowired
+    private RedisOperator redis;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -55,6 +60,9 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
                     .eq(Fans::getVlogerId, myId)
                     .set(Fans::getIsFanFriendOfMine, YesOrNo.YES.type)
                     .update();
+            redis.increment(REDIS_MY_FOLLOWS_COUNTS + ":" + myId, 1);
+            redis.increment(REDIS_MY_FANS_COUNTS+ ":" + toId, 1);
+            redis.set(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + myId + ":" + toId, "1");
         } else{
             fans.setIsFanFriendOfMine(YesOrNo.NO.type);
         }
