@@ -89,6 +89,13 @@ public class VlogController{
         return GraceJSONResult.ok(myPublicList);
     }
 
-
+    @ApiOperation("点赞接口")
+    @PostMapping("/like")
+    public GraceJSONResult like(@RequestParam String userId,
+                                @RequestParam String vlogerId,
+                                @RequestParam String vlogId) {
+        vlogService.like(userId, vlogerId, vlogId);
+        return GraceJSONResult.ok();
+    }
 
 }

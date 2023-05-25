@@ -22,5 +22,8 @@ public interface VlogService extends IService<Vlog> {
     void changeToPublicOrPrivate(String userId, String vlogId, Integer type);
 
     PagedGridResult getMyVlogList(String userId, Integer page, Integer pageSize, Integer type);
+
+    void like(String userId, String vlogerId, String vlogId);
+
 }
 

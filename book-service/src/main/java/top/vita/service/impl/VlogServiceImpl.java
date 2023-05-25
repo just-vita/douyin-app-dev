@@ -11,11 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.vita.bo.VlogBO;
 import top.vita.enums.YesOrNo;
+import top.vita.pojo.MyLikedVlog;
 import top.vita.pojo.Vlog;
 import top.vita.mapper.VlogMapper;
+import top.vita.service.MyLikedVlogService;
 import top.vita.service.VlogService;
 import top.vita.service.base.BaseInfoProperties;
 import top.vita.utils.PagedGridResult;
+import top.vita.utils.RedisOperator;
 import top.vita.vo.IndexVlogVO;
 
 import java.util.Date;
@@ -23,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static top.vita.service.base.BaseInfoProperties.setterPagedGrid;
+import static top.vita.service.base.BaseInfoProperties.*;
 
 /**
  * 短视频表(Vlog)表服务实现类
@@ -38,6 +41,10 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
     private Sid sid;
     @Autowired
     private VlogMapper vlogMapper;
+    @Autowired
+    private MyLikedVlogService myLikedVlogService;
+    @Autowired
+    private RedisOperator redis;
 
     @Override
     public void createVlog(VlogBO vlogBO) {
@@ -105,6 +112,21 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
                 .eq(Vlog::getIsPrivate, type)
                 .list();
         return setterPagedGrid(list, page);
+    }
+
+    @Override
+    public void like(String userId, String vlogerId, String vlogId) {
+        MyLikedVlog myLikedVlog = new MyLikedVlog();
+        myLikedVlog.setId(sid.nextShort());
+        myLikedVlog.setUserId(userId);
+        myLikedVlog.setVlogId(vlogId);
+        myLikedVlogService.save(myLikedVlog);
+
+        // 增加视频总赞数和博主总赞数
+        redis.increment(REDIS_VLOGER_BE_LIKED_COUNTS + ":" + vlogerId, 1);
+        redis.increment(REDIS_VLOG_BE_LIKED_COUNTS + ":" + vlogId, 1);
+        // 保存用户和视频的点赞关系
+        redis.set(REDIS_USER_LIKE_VLOG + ":" + userId + ":" + vlogerId, "1");
     }
 }
 
