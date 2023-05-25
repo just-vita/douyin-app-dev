@@ -1,6 +1,7 @@
 package top.vita.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import top.vita.bo.VlogBO;
 import top.vita.pojo.Vlog;
 
 /**
@@ -10,6 +11,8 @@ import top.vita.pojo.Vlog;
  * @since 2023-05-24 00:57:36
  */
 public interface VlogService extends IService<Vlog> {
+
+    void createVlog(VlogBO vlogBO);
 
 }
 
