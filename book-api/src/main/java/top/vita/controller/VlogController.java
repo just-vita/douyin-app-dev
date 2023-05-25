@@ -11,6 +11,7 @@ import top.vita.service.VlogService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import top.vita.utils.MinIOUtils;
+import top.vita.utils.PagedGridResult;
 import top.vita.vo.IndexVlogVO;
 
 import java.util.List;
@@ -38,8 +39,10 @@ public class VlogController{
 
     @ApiOperation("获取首页视频列表接口")
     @GetMapping("/indexList")
-    public GraceJSONResult indexList(@RequestParam(defaultValue = "") String search) {
-        List<IndexVlogVO> indexVlogList = vlogService.getIndexVlogList(search);
+    public GraceJSONResult indexList(@RequestParam(defaultValue = "") String search,
+                                     @RequestParam(defaultValue = "1") Integer page,
+                                     @RequestParam(defaultValue = "10") Integer pageSize) {
+        PagedGridResult indexVlogList = vlogService.getIndexVlogList(search, page, pageSize);
         return GraceJSONResult.ok(indexVlogList);
     }
 }

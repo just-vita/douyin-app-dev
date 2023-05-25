@@ -1,6 +1,8 @@
 package top.vita.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.idworker.Sid;
 import org.springframework.beans.BeanUtils;
@@ -11,6 +13,7 @@ import top.vita.enums.YesOrNo;
 import top.vita.pojo.Vlog;
 import top.vita.mapper.VlogMapper;
 import top.vita.service.VlogService;
+import top.vita.utils.PagedGridResult;
 import top.vita.vo.IndexVlogVO;
 
 import java.util.Date;
@@ -52,12 +55,25 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
     }
 
     @Override
-    public List<IndexVlogVO> getIndexVlogList(String search) {
+    public PagedGridResult getIndexVlogList(String search, Integer page, Integer pageSize) {
+        PageHelper.startPage(page, pageSize);
         Map<String, Object> map = new HashMap<>();
         if (StringUtils.isNotBlank(search)){
             map.put("search", search);
         }
-        return vlogMapper.getIndexVlogList(map);
+        List<IndexVlogVO> list = vlogMapper.getIndexVlogList(map);
+        return setterPagedGrid(list, page);
+    }
+
+    public PagedGridResult setterPagedGrid(List<?> list,
+                                           Integer page) {
+        PageInfo<?> pageList = new PageInfo<>(list);
+        PagedGridResult gridResult = new PagedGridResult();
+        gridResult.setRows(list);
+        gridResult.setPage(page);
+        gridResult.setRecords(pageList.getTotal());
+        gridResult.setTotal(pageList.getPages());
+        return gridResult;
     }
 }
 

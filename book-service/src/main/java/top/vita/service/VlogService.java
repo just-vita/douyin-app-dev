@@ -3,9 +3,7 @@ package top.vita.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import top.vita.bo.VlogBO;
 import top.vita.pojo.Vlog;
-import top.vita.vo.IndexVlogVO;
-
-import java.util.List;
+import top.vita.utils.PagedGridResult;
 
 /**
  * 短视频表(Vlog)表服务接口
@@ -17,6 +15,6 @@ public interface VlogService extends IService<Vlog> {
 
     void createVlog(VlogBO vlogBO);
 
-    List<IndexVlogVO> getIndexVlogList(String search);
+    PagedGridResult getIndexVlogList(String search, Integer page, Integer pageSize);
 }
 
