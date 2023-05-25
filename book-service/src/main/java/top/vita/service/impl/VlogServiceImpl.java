@@ -3,6 +3,7 @@ package top.vita.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.idworker.Sid;
 import org.springframework.beans.BeanUtils;
@@ -63,6 +64,18 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         }
         List<IndexVlogVO> list = vlogMapper.getIndexVlogList(map);
         return setterPagedGrid(list, page);
+    }
+
+    @Override
+    public Object getVlogDetailById(String vlogId) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("vlogId", vlogId);
+        // TODO 可优化
+        List<IndexVlogVO> list = vlogMapper.getVlogDetailById(map);
+        if (list != null && !list.isEmpty()){
+            return list.get(0);
+        }
+        return null;
     }
 
     public PagedGridResult setterPagedGrid(List<?> list,
