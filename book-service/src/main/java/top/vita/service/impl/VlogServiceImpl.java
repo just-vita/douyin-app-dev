@@ -1,6 +1,7 @@
 package top.vita.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.n3r.idworker.Sid;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +11,12 @@ import top.vita.enums.YesOrNo;
 import top.vita.pojo.Vlog;
 import top.vita.mapper.VlogMapper;
 import top.vita.service.VlogService;
+import top.vita.vo.IndexVlogVO;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 短视频表(Vlog)表服务实现类
@@ -24,6 +29,8 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
 
     @Autowired
     private Sid sid;
+    @Autowired
+    private VlogMapper vlogMapper;
 
     @Override
     public void createVlog(VlogBO vlogBO) {
@@ -42,6 +49,15 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         vlog.setUpdatedTime(new Date());
 
         save(vlog);
+    }
+
+    @Override
+    public List<IndexVlogVO> getIndexVlogList(String search) {
+        Map<String, Object> map = new HashMap<>();
+        if (StringUtils.isNotBlank(search)){
+            map.put("search", search);
+        }
+        return vlogMapper.getIndexVlogList(map);
     }
 }
 

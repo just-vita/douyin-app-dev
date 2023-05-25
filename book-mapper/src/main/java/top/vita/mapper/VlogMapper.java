@@ -2,7 +2,12 @@ package top.vita.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 import top.vita.pojo.Vlog;
+import top.vita.vo.IndexVlogVO;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 短视频表(Vlog)表数据库访问层
@@ -12,6 +17,8 @@ import top.vita.pojo.Vlog;
  */
 @Mapper
 public interface VlogMapper extends BaseMapper<Vlog> {
+
+    List<IndexVlogVO> getIndexVlogList(@Param("paramMap") Map<String, Object> map);
 
 }
 

@@ -1,21 +1,51 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="top.vita.mapper.VlogMapper" >
-  <resultMap id="BaseResultMap" type="top.vita.pojo.Vlog" >
-    <!--
-      WARNING - @mbg.generated
-    -->
-    <id column="id" property="id" jdbcType="VARCHAR" />
-    <result column="vloger_id" property="vlogerId" jdbcType="VARCHAR" />
-    <result column="url" property="url" jdbcType="VARCHAR" />
-    <result column="cover" property="cover" jdbcType="VARCHAR" />
-    <result column="title" property="title" jdbcType="VARCHAR" />
-    <result column="width" property="width" jdbcType="INTEGER" />
-    <result column="height" property="height" jdbcType="INTEGER" />
-    <result column="like_counts" property="likeCounts" jdbcType="INTEGER" />
-    <result column="comments_counts" property="commentsCounts" jdbcType="INTEGER" />
-    <result column="is_private" property="isPrivate" jdbcType="INTEGER" />
-    <result column="created_time" property="createdTime" jdbcType="TIMESTAMP" />
-    <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP" />
-  </resultMap>
+<mapper namespace="top.vita.mapper.VlogMapper">
+    <resultMap id="BaseResultMap" type="top.vita.pojo.Vlog">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="vloger_id" property="vlogerId" jdbcType="VARCHAR"/>
+        <result column="url" property="url" jdbcType="VARCHAR"/>
+        <result column="cover" property="cover" jdbcType="VARCHAR"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="width" property="width" jdbcType="INTEGER"/>
+        <result column="height" property="height" jdbcType="INTEGER"/>
+        <result column="like_counts" property="likeCounts" jdbcType="INTEGER"/>
+        <result column="comments_counts" property="commentsCounts" jdbcType="INTEGER"/>
+        <result column="is_private" property="isPrivate" jdbcType="INTEGER"/>
+        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
+        <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="getIndexVlogList" parameterType="map" resultType="top.vita.vo.IndexVlogVO">
+        SELECT
+          v.id as vlogId,
+          v.vloger_id as vlogerId,
+          u.face as vlogerFace,
+          u.nickname as vlogerName,
+          v.title as content,
+          v.url as url,
+          v.cover as cover,
+          v.width as width,
+          v.height as height,
+          v.like_counts as likeCounts,
+          v.comments_counts as commentsCounts,
+          v.is_private as isPrivate
+        FROM
+            vlog v
+        LEFT JOIN
+            users u
+        ON
+            v.vloger_id = u.id
+        WHERE
+            v.is_private = 0
+            <if test="paramMap.search != null and paramMap.search != ''">
+                AND v.title like '%${paramMap.search}%'
+            </if>
+        ORDER BY
+            v.created_time
+        DESC
+    </select>
 </mapper>
