@@ -111,8 +111,17 @@ public class VlogController{
     @ApiOperation("查询点赞数量接口")
     @PostMapping("/totalLikedCounts")
     public GraceJSONResult totalLikedCounts(@RequestParam String vlogId) {
-        vlogService.getVlogBeLikedCounts(vlogId);
-        return GraceJSONResult.ok();
+        Integer likedCounts = vlogService.getVlogBeLikedCounts(vlogId);
+        return GraceJSONResult.ok(likedCounts);
     }
 
+    @ApiOperation("已点赞视频列表接口")
+    @GetMapping("/myLikedList")
+    public GraceJSONResult myLikedList(@RequestParam String userId,
+                                       @RequestParam(defaultValue = "1") Integer page,
+                                       @RequestParam(defaultValue = "10") Integer pageSize) {
+        PagedGridResult myLikedList =
+                vlogService.getMyLikedVlogList(userId, page, pageSize);
+        return GraceJSONResult.ok(myLikedList);
+    }
 }

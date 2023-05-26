@@ -95,6 +95,15 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         return Integer.valueOf(countStr);
     }
 
+    @Override
+    public PagedGridResult getMyLikedVlogList(String userId, Integer page, Integer pageSize) {
+        PageHelper.startPage(page, pageSize);
+        Map<String, Object> map = new HashMap<>();
+        map.put("userId", userId);
+        List<IndexVlogVO> list = vlogMapper.getMyLikedVlogList(map);
+        return setterPagedGrid(list, page);
+    }
+
     /**
      * 判断是否已经点赞了这个视频
      */
