@@ -15,7 +15,6 @@ import top.vita.service.CommentService;
 import top.vita.utils.PagedGridResult;
 import top.vita.utils.RedisOperator;
 import top.vita.vo.CommentVO;
-import top.vita.vo.IndexVlogVO;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -71,7 +70,27 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         Map<String, Object> map = new HashMap<>();
         map.put("vlogId", vlogId);
         List<CommentVO> list = commentMapper.getCommentList(map);
+        for (CommentVO commentVO : list) {
+            commentVO.setIsLike(isLikedComment(userId, commentVO.getCommentId()));
+            commentVO.setLikeCounts(getLikedComment(commentVO.getCommentId()));
+        }
         return setterPagedGrid(list, page);
+    }
+
+    private Integer isLikedComment(String userId, String commentId) {
+        String isLiked = redis.get(REDIS_USER_LIKE_COMMENT + ":" + userId + ":" + commentId);
+        if (!"1".equals(isLiked)){
+            return 0;
+        }
+        return 1;
+    }
+
+    private Integer getLikedComment(String commentId) {
+        String count = redis.get(REDIS_VLOG_COMMENT_LIKED_COUNTS + ":" + commentId);
+        if (StringUtils.isBlank(count)){
+            return 0;
+        }
+        return Integer.parseInt(count);
     }
 
     @Override
@@ -86,15 +105,17 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void likeComment(String commentId, String userId) {
         redis.increment(REDIS_VLOG_COMMENT_LIKED_COUNTS + ":" + commentId, 1);
-        redis.set(REDIS_USER_LIKE_COMMENT + ":" + userId, "1");
+        redis.set(REDIS_USER_LIKE_COMMENT + ":" + userId + ":" + commentId, "1");
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void unlikeComment(String commentId, String userId) {
         redis.decrement(REDIS_VLOG_COMMENT_LIKED_COUNTS + ":" + commentId, 1);
-        redis.del(REDIS_USER_LIKE_COMMENT + ":" + userId);
+        redis.del(REDIS_USER_LIKE_COMMENT + ":" + userId + ":" + commentId);
     }
 }
 
