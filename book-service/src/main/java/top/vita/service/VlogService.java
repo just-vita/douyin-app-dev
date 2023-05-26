@@ -17,7 +17,7 @@ public interface VlogService extends IService<Vlog> {
 
     PagedGridResult getIndexVlogList(String userId, String search, Integer page, Integer pageSize);
 
-    Object getVlogDetailById(String vlogId);
+    Object getVlogDetailById(String userId, String vlogId);
 
     void changeToPublicOrPrivate(String userId, String vlogId, Integer type);
 
@@ -32,6 +32,9 @@ public interface VlogService extends IService<Vlog> {
     PagedGridResult getMyLikedVlogList(String userId, Integer page, Integer pageSize);
 
     PagedGridResult getMyFollowVlogList(String myId, Integer page, Integer pageSize);
+
+    PagedGridResult getMyFriendVlogList(String myId, Integer page, Integer pageSize);
+
 
 }
 

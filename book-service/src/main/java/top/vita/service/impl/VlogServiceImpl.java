@@ -80,17 +80,20 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         List<IndexVlogVO> list = vlogMapper.getIndexVlogList(map);
         // 设置是否已经点赞了这个视频
         for (IndexVlogVO vlogVO : list) {
-            // 是否关注这个博主
-            boolean isFollowed = fansService.isFollowed(userId, vlogVO.getVlogerId());
-            vlogVO.setDoIFollowVloger(isFollowed);
-            // 是否点赞这个视频
-            boolean isLiked = isLikedVlog(userId, vlogVO.getVlogId());
-            vlogVO.setDoILikeThisVlog(isLiked);
-            // 从redis查询视频点赞总数
-            Integer count = getVlogBeLikedCounts(vlogVO.getVlogId());
-            vlogVO.setLikeCounts(count);
+            setVlogVo(userId, vlogVO, fansService.isFollowed(userId, vlogVO.getVlogerId()));
         }
         return setterPagedGrid(list, page);
+    }
+
+    private void setVlogVo(String userId, IndexVlogVO vlogVO, boolean isFollowed) {
+        // 是否关注这个博主
+        vlogVO.setDoIFollowVloger(isFollowed);
+        // 是否点赞这个视频
+        boolean isLiked = isLikedVlog(userId, vlogVO.getVlogId());
+        vlogVO.setDoILikeThisVlog(isLiked);
+        // 从redis查询视频点赞总数
+        Integer count = getVlogBeLikedCounts(vlogVO.getVlogId());
+        vlogVO.setLikeCounts(count);
     }
 
     @Override
@@ -118,14 +121,19 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         map.put("myId", myId);
         List<IndexVlogVO> list = vlogMapper.getMyFollowVlogList(map);
         for (IndexVlogVO vlogVO : list) {
-            // 因为是查询的是关注列表，必定是已关注
-            vlogVO.setDoIFollowVloger(true);
-            // 是否点赞这个视频
-            boolean isLiked = isLikedVlog(myId, vlogVO.getVlogId());
-            vlogVO.setDoILikeThisVlog(isLiked);
-            // 从redis查询视频点赞总数
-            Integer count = getVlogBeLikedCounts(vlogVO.getVlogId());
-            vlogVO.setLikeCounts(count);
+            setVlogVo(myId, vlogVO, true);
+        }
+        return setterPagedGrid(list, page);
+    }
+
+    @Override
+    public PagedGridResult getMyFriendVlogList(String myId, Integer page, Integer pageSize) {
+        PageHelper.startPage(page, pageSize);
+        Map<String, Object> map = new HashMap<>();
+        map.put("myId", myId);
+        List<IndexVlogVO> list = vlogMapper.getMyFriendVlogList(map);
+        for (IndexVlogVO vlogVO : list) {
+            setVlogVo(myId, vlogVO, true);
         }
         return setterPagedGrid(list, page);
     }
@@ -142,15 +150,14 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
     }
 
     @Override
-    public Object getVlogDetailById(String vlogId) {
+    public Object getVlogDetailById(String userId, String vlogId) {
         Map<String, Object> map = new HashMap<>();
         map.put("vlogId", vlogId);
         // TODO 可优化
         List<IndexVlogVO> list = vlogMapper.getVlogDetailById(map);
         if (list != null && !list.isEmpty()){
             IndexVlogVO indexVlogVO = list.get(0);
-            indexVlogVO.setLikeCounts(getVlogBeLikedCounts(vlogId));
-//            indexVlogVO.setCommentsCounts();
+            setVlogVo(userId, indexVlogVO, true);
             return indexVlogVO;
         }
         return null;
