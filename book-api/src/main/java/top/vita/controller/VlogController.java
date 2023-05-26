@@ -69,8 +69,8 @@ public class VlogController{
     @ApiOperation("个人私密视频列表接口")
     @GetMapping("/myPrivateList")
     public GraceJSONResult myPrivateList(@RequestParam String userId,
-                                     @RequestParam(defaultValue = "1") Integer page,
-                                     @RequestParam(defaultValue = "10") Integer pageSize) {
+                                         @RequestParam(defaultValue = "1") Integer page,
+                                         @RequestParam(defaultValue = "10") Integer pageSize) {
         PagedGridResult myPrivateList = vlogService.getMyVlogList(userId,
                                                                 page,
                                                                 pageSize,
@@ -81,8 +81,8 @@ public class VlogController{
     @ApiOperation("个人公开视频列表接口")
     @GetMapping("/myPublicList")
     public GraceJSONResult myPublicList(@RequestParam String userId,
-                                         @RequestParam(defaultValue = "1") Integer page,
-                                         @RequestParam(defaultValue = "10") Integer pageSize) {
+                                        @RequestParam(defaultValue = "1") Integer page,
+                                        @RequestParam(defaultValue = "10") Integer pageSize) {
         PagedGridResult myPublicList = vlogService.getMyVlogList(userId,
                                                                 page,
                                                                 pageSize,
@@ -128,8 +128,8 @@ public class VlogController{
     @ApiOperation("已关注博主视频列表接口")
     @GetMapping("/followList")
     public GraceJSONResult followList(@RequestParam String myId,
-                                       @RequestParam(defaultValue = "1") Integer page,
-                                       @RequestParam(defaultValue = "10") Integer pageSize) {
+                                      @RequestParam(defaultValue = "1") Integer page,
+                                      @RequestParam(defaultValue = "10") Integer pageSize) {
         PagedGridResult result =
                 vlogService.getMyFollowVlogList(myId, page, pageSize);
         return GraceJSONResult.ok(result);

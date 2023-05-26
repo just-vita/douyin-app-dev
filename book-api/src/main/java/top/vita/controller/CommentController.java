@@ -1,10 +1,16 @@
 package top.vita.controller;
 
-
-
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import top.vita.bo.CommentBO;
+import top.vita.bo.VlogBO;
+import top.vita.grace.result.GraceJSONResult;
 import top.vita.service.CommentService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import top.vita.vo.CommentVO;
+
+import javax.validation.Valid;
 
 /**
  * 评论表(Comment)表控制层
@@ -12,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author vita
  * @since 2023-05-24 00:57:32
  */
+@Api(tags = "评论模块")
 @RestController
 @RequestMapping("/comment")
 public class CommentController{
@@ -19,4 +26,10 @@ public class CommentController{
     @Autowired
     private CommentService commentService;
 
+    @ApiOperation("发布评论接口")
+    @PostMapping("/create")
+    public GraceJSONResult createComment(@RequestBody @Valid CommentBO commentBO) {
+        CommentVO commentVO = commentService.createComment(commentBO);
+        return GraceJSONResult.ok(commentVO);
+    }
 }

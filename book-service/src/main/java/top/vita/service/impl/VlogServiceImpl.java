@@ -153,7 +153,6 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
     public Object getVlogDetailById(String userId, String vlogId) {
         Map<String, Object> map = new HashMap<>();
         map.put("vlogId", vlogId);
-        // TODO 可优化
         List<IndexVlogVO> list = vlogMapper.getVlogDetailById(map);
         if (list != null && !list.isEmpty()){
             IndexVlogVO indexVlogVO = list.get(0);
