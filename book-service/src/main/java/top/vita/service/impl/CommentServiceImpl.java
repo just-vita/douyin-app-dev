@@ -7,6 +7,7 @@ import org.n3r.idworker.Sid;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import top.vita.bo.CommentBO;
 import top.vita.pojo.Comment;
 import top.vita.mapper.CommentMapper;
@@ -72,6 +73,17 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         map.put("vlogId", vlogId);
         List<CommentVO> list = commentMapper.getCommentList(map);
         return setterPagedGrid(list, page);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteComment(String commentUserId, String commentId, String vlogId) {
+        lambdaUpdate()
+                .eq(Comment::getCommentUserId, commentUserId)
+                .eq(Comment::getId, commentId)
+                .remove();
+        // 减少redis中存放的评论数量
+        redis.decrement(REDIS_VLOG_COMMENT_COUNTS + ":" + vlogId, 1);
     }
 }
 

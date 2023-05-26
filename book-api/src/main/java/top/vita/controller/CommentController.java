@@ -51,4 +51,14 @@ public class CommentController{
                 commentService.getVlogCommentList(vlogId, userId, page, pageSize);
         return GraceJSONResult.ok(result);
     }
+
+    @ApiOperation("删除评论接口")
+    @DeleteMapping("/delete")
+    public GraceJSONResult deleteComment(@RequestParam String commentUserId,
+                                         @RequestParam String commentId,
+                                         @RequestParam String vlogId) {
+        commentService.deleteComment(commentUserId, commentId, vlogId);
+        return GraceJSONResult.ok();
+    }
+
 }

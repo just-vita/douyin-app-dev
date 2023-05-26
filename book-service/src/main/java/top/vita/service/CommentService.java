@@ -20,5 +20,6 @@ public interface CommentService extends IService<Comment> {
 
     PagedGridResult getVlogCommentList(String vlogId, String userId, Integer page, Integer pageSize);
 
+    void deleteComment(String commentUserId, String commentId, String vlogId);
 }
 
