@@ -79,8 +79,20 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         for (IndexVlogVO vlogVO : list) {
             boolean isLiked = isLikedVlog(userId, vlogVO.getVlogId());
             vlogVO.setDoILikeThisVlog(isLiked);
+            // 从redis查询视频点赞总数
+            Integer count = getVlogBeLikedCounts(vlogVO.getVlogId());
+            vlogVO.setLikeCounts(count);
         }
         return setterPagedGrid(list, page);
+    }
+
+    @Override
+    public Integer getVlogBeLikedCounts(String vlogId) {
+        String countStr = redis.get(REDIS_VLOG_BE_LIKED_COUNTS + ":" + vlogId);
+        if (StringUtils.isBlank(countStr)){
+            return 0;
+        }
+        return Integer.valueOf(countStr);
     }
 
     /**

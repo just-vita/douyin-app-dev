@@ -27,6 +27,6 @@ public interface VlogService extends IService<Vlog> {
 
     void unlike(String userId, String vlogerId, String vlogId);
 
-
+    Integer getVlogBeLikedCounts(String vlogId);
 }
 

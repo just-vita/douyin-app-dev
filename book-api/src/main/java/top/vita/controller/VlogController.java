@@ -108,4 +108,11 @@ public class VlogController{
         return GraceJSONResult.ok();
     }
 
+    @ApiOperation("查询点赞数量接口")
+    @PostMapping("/totalLikedCounts")
+    public GraceJSONResult totalLikedCounts(@RequestParam String vlogId) {
+        vlogService.getVlogBeLikedCounts(vlogId);
+        return GraceJSONResult.ok();
+    }
+
 }
