@@ -124,4 +124,14 @@ public class VlogController{
                 vlogService.getMyLikedVlogList(userId, page, pageSize);
         return GraceJSONResult.ok(myLikedList);
     }
+
+    @ApiOperation("已关注博主视频列表接口")
+    @GetMapping("/followList")
+    public GraceJSONResult followList(@RequestParam String myId,
+                                       @RequestParam(defaultValue = "1") Integer page,
+                                       @RequestParam(defaultValue = "10") Integer pageSize) {
+        PagedGridResult result =
+                vlogService.getMyFollowVlogList(myId, page, pageSize);
+        return GraceJSONResult.ok(result);
+    }
 }

@@ -31,7 +31,7 @@ public interface VlogService extends IService<Vlog> {
 
     PagedGridResult getMyLikedVlogList(String userId, Integer page, Integer pageSize);
 
-
+    PagedGridResult getMyFollowVlogList(String myId, Integer page, Integer pageSize);
 
 }
 

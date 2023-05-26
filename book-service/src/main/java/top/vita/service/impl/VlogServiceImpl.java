@@ -14,6 +14,7 @@ import top.vita.enums.YesOrNo;
 import top.vita.pojo.MyLikedVlog;
 import top.vita.pojo.Vlog;
 import top.vita.mapper.VlogMapper;
+import top.vita.service.FansService;
 import top.vita.service.MyLikedVlogService;
 import top.vita.service.VlogService;
 import top.vita.utils.PagedGridResult;
@@ -42,6 +43,8 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
     private VlogMapper vlogMapper;
     @Autowired
     private MyLikedVlogService myLikedVlogService;
+    @Autowired
+    private FansService fansService;
     @Autowired
     private RedisOperator redis;
 
@@ -77,6 +80,10 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         List<IndexVlogVO> list = vlogMapper.getIndexVlogList(map);
         // 设置是否已经点赞了这个视频
         for (IndexVlogVO vlogVO : list) {
+            // 是否关注这个博主
+            boolean isFollowed = fansService.isFollowed(userId, vlogVO.getVlogerId());
+            vlogVO.setDoIFollowVloger(isFollowed);
+            // 是否点赞这个视频
             boolean isLiked = isLikedVlog(userId, vlogVO.getVlogId());
             vlogVO.setDoILikeThisVlog(isLiked);
             // 从redis查询视频点赞总数
@@ -104,6 +111,25 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         return setterPagedGrid(list, page);
     }
 
+    @Override
+    public PagedGridResult getMyFollowVlogList(String myId, Integer page, Integer pageSize) {
+        PageHelper.startPage(page, pageSize);
+        Map<String, Object> map = new HashMap<>();
+        map.put("myId", myId);
+        List<IndexVlogVO> list = vlogMapper.getMyFollowVlogList(map);
+        for (IndexVlogVO vlogVO : list) {
+            // 因为是查询的是关注列表，必定是已关注
+            vlogVO.setDoIFollowVloger(true);
+            // 是否点赞这个视频
+            boolean isLiked = isLikedVlog(myId, vlogVO.getVlogId());
+            vlogVO.setDoILikeThisVlog(isLiked);
+            // 从redis查询视频点赞总数
+            Integer count = getVlogBeLikedCounts(vlogVO.getVlogId());
+            vlogVO.setLikeCounts(count);
+        }
+        return setterPagedGrid(list, page);
+    }
+
     /**
      * 判断是否已经点赞了这个视频
      */
@@ -122,7 +148,10 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         // TODO 可优化
         List<IndexVlogVO> list = vlogMapper.getVlogDetailById(map);
         if (list != null && !list.isEmpty()){
-            return list.get(0);
+            IndexVlogVO indexVlogVO = list.get(0);
+            indexVlogVO.setLikeCounts(getVlogBeLikedCounts(vlogId));
+//            indexVlogVO.setCommentsCounts();
+            return indexVlogVO;
         }
         return null;
     }
