@@ -103,7 +103,7 @@
             v.is_private = 0
         ORDER BY
             v.created_time
-                DESC
+        DESC
     </select>
 
     <select id="getMyFollowVlogList" parameterType="map" resultType="top.vita.vo.IndexVlogVO">

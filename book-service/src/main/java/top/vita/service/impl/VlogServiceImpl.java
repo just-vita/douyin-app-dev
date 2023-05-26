@@ -174,6 +174,7 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
     }
 
     @Override
+    @SuppressWarnings("all")
     public PagedGridResult getMyVlogList(String userId,
                                          Integer page,
                                          Integer pageSize,
@@ -182,6 +183,7 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         Page<Vlog> vlogPage = lambdaQuery()
                 .eq(Vlog::getVlogerId, userId)
                 .eq(Vlog::getIsPrivate, type)
+                .orderByDesc(Vlog::getCreatedTime)
                 .page(page_);
         return setterPagedGrid(vlogPage.getRecords(), page);
     }

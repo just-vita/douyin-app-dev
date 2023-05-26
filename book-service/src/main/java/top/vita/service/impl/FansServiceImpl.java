@@ -6,10 +6,12 @@ import org.n3r.idworker.Sid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import top.vita.enums.MessageEnum;
 import top.vita.enums.YesOrNo;
 import top.vita.pojo.Fans;
 import top.vita.mapper.FansMapper;
 import top.vita.service.FansService;
+import top.vita.service.MsgService;
 import top.vita.utils.PagedGridResult;
 import top.vita.utils.RedisOperator;
 import top.vita.vo.FansVO;
@@ -38,6 +40,8 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
     private RedisOperator redis;
     @Autowired
     private FansMapper fansMapper;
+    @Autowired
+    private MsgService msgService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -70,6 +74,9 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
         redis.increment(REDIS_MY_FANS_COUNTS+ ":" + toId, 1);
         // 存储互关状态
         redis.set(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + myId + ":" + toId, "1");
+
+        // 向被关注方发送消息
+        msgService.createMsg(myId, toId, MessageEnum.FOLLOW_YOU.type, null);
     }
 
     /**
