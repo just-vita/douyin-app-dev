@@ -2,6 +2,7 @@ package top.vita.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.pagehelper.PageHelper;
 import org.n3r.idworker.Sid;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +11,18 @@ import top.vita.bo.CommentBO;
 import top.vita.pojo.Comment;
 import top.vita.mapper.CommentMapper;
 import top.vita.service.CommentService;
+import top.vita.utils.PagedGridResult;
 import top.vita.utils.RedisOperator;
 import top.vita.vo.CommentVO;
+import top.vita.vo.IndexVlogVO;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static top.vita.service.base.BaseInfoProperties.REDIS_VLOG_COMMENT_COUNTS;
+import static top.vita.service.base.BaseInfoProperties.setterPagedGrid;
 
 /**
  * 评论表(Comment)表服务实现类
@@ -30,6 +37,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     private Sid sid;
     @Autowired
     private RedisOperator redis;
+    @Autowired
+    private CommentMapper commentMapper;
 
     @Override
     public CommentVO createComment(CommentBO commentBO) {
@@ -54,6 +63,15 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             return 0;
         }
         return Integer.valueOf(countStr);
+    }
+
+    @Override
+    public PagedGridResult getVlogCommentList(String vlogId, String userId, Integer page, Integer pageSize) {
+        PageHelper.startPage(page, pageSize);
+        Map<String, Object> map = new HashMap<>();
+        map.put("vlogId", vlogId);
+        List<CommentVO> list = commentMapper.getCommentList(map);
+        return setterPagedGrid(list, page);
     }
 }
 

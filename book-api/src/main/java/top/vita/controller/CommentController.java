@@ -8,6 +8,7 @@ import top.vita.grace.result.GraceJSONResult;
 import top.vita.service.CommentService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import top.vita.utils.PagedGridResult;
 import top.vita.vo.CommentVO;
 
 import javax.validation.Valid;
@@ -38,5 +39,16 @@ public class CommentController{
     public GraceJSONResult counts(@RequestParam String vlogId) {
         Integer count = commentService.getVlogCommentCountFromRedis(vlogId);
         return GraceJSONResult.ok(count);
+    }
+
+    @ApiOperation("评论列表接口")
+    @GetMapping("/list")
+    public GraceJSONResult list(@RequestParam String vlogId,
+                                @RequestParam(defaultValue = "") String userId,
+                                @RequestParam(defaultValue = "1") Integer page,
+                                @RequestParam(defaultValue = "10") Integer pageSize) {
+        PagedGridResult result =
+                commentService.getVlogCommentList(vlogId, userId, page, pageSize);
+        return GraceJSONResult.ok(result);
     }
 }

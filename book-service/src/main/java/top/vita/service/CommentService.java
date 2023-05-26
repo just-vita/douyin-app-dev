@@ -3,6 +3,7 @@ package top.vita.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import top.vita.bo.CommentBO;
 import top.vita.pojo.Comment;
+import top.vita.utils.PagedGridResult;
 import top.vita.vo.CommentVO;
 
 /**
@@ -16,5 +17,8 @@ public interface CommentService extends IService<Comment> {
     CommentVO createComment(CommentBO commentBO);
 
     Integer getVlogCommentCountFromRedis(String vlogId);
+
+    PagedGridResult getVlogCommentList(String vlogId, String userId, Integer page, Integer pageSize);
+
 }
 
