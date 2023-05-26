@@ -222,7 +222,7 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         Map<String, Object> map = new HashMap<>();
         map.put("vlogId", vlogId);
         map.put("vlogCover", cover);
-        msgService.createMsg(userId, vlogId, MessageEnum.LIKE_VLOG.type, map);
+        msgService.createMsg(userId, vlogerId, MessageEnum.LIKE_VLOG.type, map);
     }
 
     @Override

@@ -88,7 +88,7 @@ public class UsersController extends BaseInfoProperties {
         return GraceJSONResult.ok(user);
     }
 
-    @ApiOperation("修改用户头像/背景接口")
+    @ApiOperation("修改用户头像、背景接口")
     @PostMapping("/modifyImage")
     public GraceJSONResult modifyImage(@RequestParam String userId,
                                        @RequestParam Integer type,

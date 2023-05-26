@@ -1,14 +1,23 @@
 package top.vita.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import top.vita.enums.MessageEnum;
 import top.vita.mo.MessageMO;
 import top.vita.pojo.Users;
 import top.vita.repository.MessageRepository;
+import top.vita.service.FansService;
 import top.vita.service.MsgService;
 import top.vita.service.UsersService;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,6 +31,8 @@ public class MsgServiceImpl implements MsgService {
     private MessageRepository messageRepository;
     @Autowired
     private UsersService usersService;
+    @Autowired
+    private FansService fansService;
 
     @Override
     public void createMsg(String fromUserId,
@@ -44,5 +55,38 @@ public class MsgServiceImpl implements MsgService {
         messageMO.setCreateTime(new Date());
 
         messageRepository.save(messageMO);
+    }
+
+    @Override
+    public List<MessageMO> queryList(String userId, Integer page, Integer pageSize) {
+        Pageable pageable = PageRequest.of(page, pageSize);
+        // 根据userId查询消息
+        List<MessageMO> list = messageRepository.findAllByToUserIdOrderByCreateTimeDesc(userId, pageable);
+        for (MessageMO messageMO : list) {
+            // 从mongoDB中取出的数据的时间会早8小时，处理时间
+            try {
+                messageMO.setCreateTime(
+                        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                        .parse(messageMO.getCreateTime().toLocaleString()));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            if (messageMO.getMsgType() != null && MessageEnum.FOLLOW_YOU.type.equals(messageMO.getMsgType())){
+                // 设置是否互关
+                Map map = messageMO.getMsgContent();
+                if (map == null) {
+                    map = new HashMap();
+                }
+                boolean isFollowed = fansService.isFollowed(userId, messageMO.getFromUserId());
+                if (isFollowed) {
+                    map.put("isFriend", true);
+                } else {
+                    map.put("isFriend", false);
+                }
+                messageMO.setMsgContent(map);
+            }
+        }
+        return list;
     }
 }
