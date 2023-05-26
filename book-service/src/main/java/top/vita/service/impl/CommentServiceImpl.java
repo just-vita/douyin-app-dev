@@ -1,5 +1,6 @@
 package top.vita.service.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.n3r.idworker.Sid;
 import org.springframework.beans.BeanUtils;
@@ -44,6 +45,15 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         CommentVO commentVO = new CommentVO();
         BeanUtils.copyProperties(comment, commentVO);
         return commentVO;
+    }
+
+    @Override
+    public Integer getVlogCommentCountFromRedis(String vlogId) {
+        String countStr = redis.get(REDIS_VLOG_COMMENT_COUNTS + ":" + vlogId);
+        if (StringUtils.isBlank(countStr)){
+            return 0;
+        }
+        return Integer.valueOf(countStr);
     }
 }
 

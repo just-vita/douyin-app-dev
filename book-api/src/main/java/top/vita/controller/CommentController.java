@@ -32,4 +32,11 @@ public class CommentController{
         CommentVO commentVO = commentService.createComment(commentBO);
         return GraceJSONResult.ok(commentVO);
     }
+
+    @ApiOperation("评论数量接口")
+    @GetMapping("/counts")
+    public GraceJSONResult counts(@RequestParam String vlogId) {
+        Integer count = commentService.getVlogCommentCountFromRedis(vlogId);
+        return GraceJSONResult.ok(count);
+    }
 }

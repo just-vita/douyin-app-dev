@@ -15,5 +15,6 @@ public interface CommentService extends IService<Comment> {
 
     CommentVO createComment(CommentBO commentBO);
 
+    Integer getVlogCommentCountFromRedis(String vlogId);
 }
 
