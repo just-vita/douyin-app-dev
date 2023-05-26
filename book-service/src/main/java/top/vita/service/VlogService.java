@@ -35,6 +35,7 @@ public interface VlogService extends IService<Vlog> {
 
     PagedGridResult getMyFriendVlogList(String myId, Integer page, Integer pageSize);
 
+    String getCoverById(String vlogId);
 
 }
 

@@ -10,16 +10,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.vita.bo.VlogBO;
+import top.vita.enums.MessageEnum;
 import top.vita.enums.YesOrNo;
 import top.vita.pojo.MyLikedVlog;
 import top.vita.pojo.Vlog;
 import top.vita.mapper.VlogMapper;
 import top.vita.service.FansService;
+import top.vita.service.MsgService;
 import top.vita.service.MyLikedVlogService;
 import top.vita.service.VlogService;
 import top.vita.utils.PagedGridResult;
 import top.vita.utils.RedisOperator;
 import top.vita.vo.IndexVlogVO;
+import top.vita.vo.VlogerVO;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -47,6 +50,8 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
     private FansService fansService;
     @Autowired
     private RedisOperator redis;
+    @Autowired
+    private MsgService msgService;
 
     @Override
     public void createVlog(VlogBO vlogBO) {
@@ -138,6 +143,14 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         return setterPagedGrid(list, page);
     }
 
+    @Override
+    public String getCoverById(String vlogId) {
+        return lambdaQuery()
+                    .eq(Vlog::getId, vlogId)
+                    .select(Vlog::getCover)
+                    .one().getCover();
+    }
+
     /**
      * 判断是否已经点赞了这个视频
      */
@@ -202,6 +215,14 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         redis.increment(REDIS_VLOG_BE_LIKED_COUNTS + ":" + vlogId, 1);
         // 保存用户和视频的点赞关系
         redis.set(REDIS_USER_LIKE_VLOG + ":" + userId + ":" + vlogId, "1");
+
+        String cover = getCoverById(vlogId);
+
+        // 发送消息给被点赞的博主
+        Map<String, Object> map = new HashMap<>();
+        map.put("vlogId", vlogId);
+        map.put("vlogCover", cover);
+        msgService.createMsg(userId, vlogId, MessageEnum.LIKE_VLOG.type, map);
     }
 
     @Override
