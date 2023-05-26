@@ -22,8 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static top.vita.service.base.BaseInfoProperties.REDIS_VLOG_COMMENT_COUNTS;
-import static top.vita.service.base.BaseInfoProperties.setterPagedGrid;
+import static top.vita.service.base.BaseInfoProperties.*;
 
 /**
  * 评论表(Comment)表服务实现类
@@ -84,6 +83,18 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .remove();
         // 减少redis中存放的评论数量
         redis.decrement(REDIS_VLOG_COMMENT_COUNTS + ":" + vlogId, 1);
+    }
+
+    @Override
+    public void likeComment(String commentId, String userId) {
+        redis.increment(REDIS_VLOG_COMMENT_LIKED_COUNTS + ":" + commentId, 1);
+        redis.set(REDIS_USER_LIKE_COMMENT + ":" + userId, "1");
+    }
+
+    @Override
+    public void unlikeComment(String commentId, String userId) {
+        redis.decrement(REDIS_VLOG_COMMENT_LIKED_COUNTS + ":" + commentId, 1);
+        redis.del(REDIS_USER_LIKE_COMMENT + ":" + userId);
     }
 }
 

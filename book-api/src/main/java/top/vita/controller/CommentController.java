@@ -61,4 +61,20 @@ public class CommentController{
         return GraceJSONResult.ok();
     }
 
+    @ApiOperation("点赞评论接口")
+    @PostMapping("/like")
+    public GraceJSONResult like(@RequestParam String commentId,
+                                @RequestParam String userId) {
+        commentService.likeComment(commentId, userId);
+        return GraceJSONResult.ok();
+    }
+
+    @ApiOperation("取消点赞评论接口")
+    @PostMapping("/unlike")
+    public GraceJSONResult unlike(@RequestParam String commentId,
+                                  @RequestParam String userId) {
+        commentService.unlikeComment(commentId, userId);
+        return GraceJSONResult.ok();
+    }
+
 }
