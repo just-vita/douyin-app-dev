@@ -14,10 +14,7 @@ import java.util.Map;
  */
 public interface MsgService {
 
-    void createMsg(String fromUserId,
-                   String toUserId,
-                   Integer type,
-                   MessageContent msgContent);
+    void createMsg(MessageMO messageMO);
 
     List<MessageMO> queryList(String userId,
                               Integer page,
@@ -26,5 +23,5 @@ public interface MsgService {
     void deleteMsg(String fromUserId,
                    String toUserId,
                    Integer type,
-                   MessageContent msgContent);
+                   String id);
 }

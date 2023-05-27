@@ -15,6 +15,9 @@ import top.vita.service.UsersService;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -35,24 +38,14 @@ public class MsgServiceImpl implements MsgService {
     private FansService fansService;
 
     @Override
-    public void createMsg(String fromUserId,
-                          String toUserId,
-                          Integer type,
-                          MessageContent msgContent) {
-        Users fromUser = usersService.getById(fromUserId);
+    public void createMsg(MessageMO messageMO) {
+        Users fromUser = usersService.getById(messageMO.getFromUserId());
 
-        MessageMO messageMO = new MessageMO();
-        messageMO.setFromUserId(fromUserId);
         messageMO.setFromNickname(fromUser.getNickname());
         messageMO.setFromFace(fromUser.getFace());
 
-        messageMO.setToUserId(toUserId);
-
-        messageMO.setMsgType(type);
-        if (msgContent != null){
-            messageMO.setMsgContent(msgContent);
-        }
-        messageMO.setCreateTime(new Date());
+        // 直接处理时间
+        messageMO.setCreateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 
         messageRepository.save(messageMO);
     }
@@ -63,32 +56,29 @@ public class MsgServiceImpl implements MsgService {
         // 根据userId查询消息
         List<MessageMO> list = messageRepository.findAllByToUserIdOrderByCreateTimeDesc(userId, pageable);
         for (MessageMO messageMO : list) {
-            // 从mongoDB中取出的数据的时间会早8小时，处理时间
-            try {
-                messageMO.setCreateTime(
-                        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                        .parse(messageMO.getCreateTime().toLocaleString()));
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-
-            if (messageMO.getMsgType() != null && MessageEnum.FOLLOW_YOU.type.equals(messageMO.getMsgType())){
+            if (messageMO.getMsgType() != null && MessageEnum.FOLLOW_YOU.type.equals(messageMO.getMsgType())) {
                 // 设置是否互关
-                MessageContent msgContent = messageMO.getMsgContent();
                 boolean isFollowed = fansService.isFollowed(userId, messageMO.getFromUserId());
                 if (isFollowed) {
-                    msgContent.setFriend(true);
+                    messageMO.setFriend(true);
                 } else {
-                    msgContent.setFriend(false);
+                    messageMO.setFriend(false);
                 }
-                messageMO.setMsgContent(msgContent);
             }
         }
         return list;
     }
 
     @Override
-    public void deleteMsg(String fromUserId, String toUserId, Integer type, MessageContent messageContent) {
-        messageRepository.deleteAllByFromUserIdAndToUserIdAndMsgTypeAndMsgContent(fromUserId, toUserId, type, messageContent);
+    public void deleteMsg(String fromUserId, String toUserId, Integer type, String id) {
+        if (MessageEnum.FOLLOW_YOU.type.equals(type)) {
+            messageRepository.deleteAllByFromUserIdAndToUserIdAndMsgType(fromUserId, toUserId, type);
+        } else if (MessageEnum.LIKE_VLOG.type.equals(type)) {
+            messageRepository.deleteAllByFromUserIdAndToUserIdAndMsgTypeAndVlogId(fromUserId, toUserId, type, id);
+        } else if (MessageEnum.COMMENT_VLOG.type.equals(type) ||
+                   MessageEnum.REPLY_YOU.type.equals(type) ||
+                   MessageEnum.LIKE_COMMENT.type.equals(type)) {
+            messageRepository.deleteAllByFromUserIdAndToUserIdAndMsgTypeAndCommentId(fromUserId, toUserId, type, id);
+        }
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import top.vita.bo.CommentBO;
 import top.vita.enums.MessageEnum;
 import top.vita.mo.MessageContent;
+import top.vita.mo.MessageMO;
 import top.vita.pojo.Comment;
 import top.vita.mapper.CommentMapper;
 import top.vita.pojo.Vlog;
@@ -65,23 +66,20 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
         // 发送消息给被评论的博主
         String cover = vlogService.getCoverById(commentVO.getVlogId());
-
-        MessageContent messageContent = new MessageContent();
-        messageContent.setVlogId(commentVO.getVlogId());
-        messageContent.setVlogCover(cover);
-        messageContent.setCommentId(commentId);
-        messageContent.setCommentContent(commentVO.getContent());
-
         Integer type = MessageEnum.COMMENT_VLOG.type;
         if (StringUtils.isNotBlank(commentVO.getFatherCommentId()) &&
                 !commentVO.getFatherCommentId().equals("0")){
             type = MessageEnum.REPLY_YOU.type;
         }
-
-        msgService.createMsg(commentVO.getCommentUserId(),
-                             commentVO.getVlogerId(),
-                             type,
-                             messageContent);
+        MessageMO messageMO = new MessageMO();
+        messageMO.setFromUserId(commentVO.getCommentUserId());
+        messageMO.setToUserId(commentVO.getVlogerId());
+        messageMO.setMsgType(type);
+        messageMO.setVlogId(commentVO.getVlogId());
+        messageMO.setVlogCover(cover);
+        messageMO.setCommentId(commentId);
+        messageMO.setCommentContent(commentVO.getContent());
+        msgService.createMsg(messageMO);
         return commentVO;
     }
 
@@ -94,30 +92,26 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         redis.decrement(REDIS_VLOG_COMMENT_COUNTS + ":" + vlogId, 1);
 
         // 清除消息
-        Vlog vlog = vlogService.lambdaQuery()
-                .eq(Vlog::getId, vlogId)
-                .select(Vlog::getCover, Vlog::getVlogerId)
-                .one();
-        Comment comment = lambdaQuery()
-                .eq(Comment::getId, commentId)
-                .select(Comment::getContent, Comment::getFatherCommentId)
-                .one();
-        MessageContent messageContent = new MessageContent();
-        messageContent.setVlogId(vlogId);
-        messageContent.setVlogCover(vlog.getCover());
-        messageContent.setCommentId(commentId);
-        messageContent.setCommentContent(comment.getContent());
-
+        String vlogerId = vlogService.lambdaQuery()
+                         .eq(Vlog::getId, vlogId)
+                         .select(Vlog::getVlogerId)
+                         .one()
+                         .getVlogerId();
+        String fatherCommentId = lambdaQuery()
+                                .eq(Comment::getId, commentId)
+                                .select(Comment::getFatherCommentId)
+                                .one()
+                                .getFatherCommentId();
         Integer type = MessageEnum.COMMENT_VLOG.type;
-        if (StringUtils.isNotBlank(comment.getFatherCommentId()) &&
-                !comment.getFatherCommentId().equals("0")){
+        if (StringUtils.isNotBlank(fatherCommentId) &&
+                !fatherCommentId.equals("0")){
             type = MessageEnum.REPLY_YOU.type;
         }
 
         msgService.deleteMsg(commentUserId,
-                                 vlog.getVlogerId(),
-                                 type,
-                                 messageContent);
+                             vlogerId,
+                             type,
+                             commentId);
 
         lambdaUpdate()
                 .eq(Comment::getCommentUserId, commentUserId)
@@ -138,15 +132,14 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .one();
         String cover = vlogService.getCoverById(comment.getVlogId());
 
-        MessageContent messageContent = new MessageContent();
-        messageContent.setVlogId(comment.getVlogId());
-        messageContent.setVlogCover(cover);
-        messageContent.setCommentId(commentId);
-
-        msgService.createMsg(userId,
-                             comment.getCommentUserId(),
-                             MessageEnum.LIKE_COMMENT.type,
-                             messageContent);
+        MessageMO messageMO = new MessageMO();
+        messageMO.setVlogId(comment.getVlogId());
+        messageMO.setVlogCover(cover);
+        messageMO.setCommentId(commentId);
+        messageMO.setFromUserId(userId);
+        messageMO.setToUserId(comment.getCommentUserId());
+        messageMO.setMsgType(MessageEnum.LIKE_COMMENT.type);
+        msgService.createMsg(messageMO);
     }
 
     @Override
@@ -158,17 +151,12 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         // 清除点赞消息
         Comment comment = lambdaQuery()
                 .eq(Comment::getId, commentId)
-                .select(Comment::getCommentUserId, Comment::getVlogId)
+                .select(Comment::getCommentUserId)
                 .one();
-        String cover = vlogService.getCoverById(comment.getVlogId());
-        MessageContent messageContent = new MessageContent();
-        messageContent.setVlogId(comment.getVlogId());
-        messageContent.setVlogCover(cover);
-        messageContent.setCommentId(commentId);
         msgService.deleteMsg(userId,
-                                 comment.getCommentUserId(),
-                                 MessageEnum.LIKE_COMMENT.type,
-                                 messageContent);
+                             comment.getCommentUserId(),
+                             MessageEnum.LIKE_COMMENT.type,
+                             commentId);
     }
 
 

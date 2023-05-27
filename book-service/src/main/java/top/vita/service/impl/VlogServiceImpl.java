@@ -13,6 +13,7 @@ import top.vita.bo.VlogBO;
 import top.vita.enums.MessageEnum;
 import top.vita.enums.YesOrNo;
 import top.vita.mo.MessageContent;
+import top.vita.mo.MessageMO;
 import top.vita.pojo.MyLikedVlog;
 import top.vita.pojo.Vlog;
 import top.vita.mapper.VlogMapper;
@@ -218,13 +219,13 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
 
         // 发送消息给被点赞的博主
         String cover = getCoverById(vlogId);
-        MessageContent messageContent = new MessageContent();
-        messageContent.setVlogId(vlogId);
-        messageContent.setVlogCover(cover);
-        msgService.createMsg(userId,
-                             vlogerId,
-                             MessageEnum.LIKE_VLOG.type,
-                             messageContent);
+        MessageMO messageMO = new MessageMO();
+        messageMO.setVlogId(vlogId);
+        messageMO.setVlogCover(cover);
+        messageMO.setFromUserId(userId);
+        messageMO.setToUserId(vlogerId);
+        messageMO.setMsgType(MessageEnum.LIKE_VLOG.type);
+        msgService.createMsg(messageMO);
     }
 
     @Override
@@ -242,14 +243,10 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         redis.del(REDIS_USER_LIKE_VLOG + ":" + userId + ":" + vlogId);
 
         // 清除消息内容
-        String cover = getCoverById(vlogId);
-        MessageContent messageContent = new MessageContent();
-        messageContent.setVlogId(vlogId);
-        messageContent.setVlogCover(cover);
         msgService.deleteMsg(userId,
-                                 vlogerId,
-                                 MessageEnum.LIKE_VLOG.type,
-                                 messageContent);
+                             vlogerId,
+                             MessageEnum.LIKE_VLOG.type,
+                             vlogId);
     }
 }
 

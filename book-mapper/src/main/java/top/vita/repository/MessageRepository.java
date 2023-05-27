@@ -18,5 +18,10 @@ import java.util.Map;
 public interface MessageRepository extends MongoRepository<MessageMO, String> {
     List<MessageMO> findAllByToUserIdOrderByCreateTimeDesc(String userId, Pageable pageable);
 
-    void deleteAllByFromUserIdAndToUserIdAndMsgTypeAndMsgContent(String fromUserId, String toUserId, Integer msgType, MessageContent msgContent);
+    void deleteAllByFromUserIdAndToUserIdAndMsgType(String fromUserId, String toUserId, Integer msgType);
+
+    void deleteAllByFromUserIdAndToUserIdAndMsgTypeAndVlogId(String fromUserId, String toUserId, Integer msgType, String vlogId);
+
+    void deleteAllByFromUserIdAndToUserIdAndMsgTypeAndCommentId(String fromUserId, String toUserId, Integer msgType, String commentId);
+
 }

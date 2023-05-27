@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.Map;
 
@@ -34,10 +35,20 @@ public class MessageMO {
 
     @Field("msgType")
     private Integer msgType;             // 消息类型 枚举
-    @Field("msgContent")
-    private MessageContent msgContent;              // 消息内容
+//    @Field("msgContent")
+//    private MessageContent msgContent;              // 消息内容
+
+    @Field("vlogId")
+    private String vlogId;
+    @Field("vlogCover")
+    private String vlogCover;
+    @Field("commentId")
+    private String commentId;
+    @Field("commentContent")
+    private String commentContent;
+    @Field("isFriend")
+    private boolean isFriend;
 
     @Field("createTime")
-    @JsonFormat(locale = "zh", timezone = "Asia/Shanghai", pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date createTime;            // 消息创建时间
+    private String createTime;            // 消息创建时间
 }

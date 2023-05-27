@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import top.vita.enums.MessageEnum;
 import top.vita.enums.YesOrNo;
 import top.vita.mo.MessageContent;
+import top.vita.mo.MessageMO;
 import top.vita.pojo.Comment;
 import top.vita.pojo.Fans;
 import top.vita.mapper.FansMapper;
@@ -78,7 +79,11 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
         redis.set(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + myId + ":" + toId, "1");
 
         // 向被关注方发送消息
-        msgService.createMsg(myId, toId, MessageEnum.FOLLOW_YOU.type, null);
+        MessageMO messageMO = new MessageMO();
+        messageMO.setFromUserId(myId);
+        messageMO.setToUserId(toId);
+        messageMO.setMsgType(MessageEnum.FOLLOW_YOU.type);
+        msgService.createMsg(messageMO);
     }
 
     @Override
