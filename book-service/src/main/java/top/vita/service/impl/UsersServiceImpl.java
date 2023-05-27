@@ -5,6 +5,7 @@ import org.n3r.idworker.Sid;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import top.vita.bo.UpdatedUserBO;
 import top.vita.enums.Sex;
 import top.vita.enums.UserInfoModifyType;
@@ -13,6 +14,7 @@ import top.vita.exceptions.GraceException;
 import top.vita.grace.result.ResponseStatusEnum;
 import top.vita.pojo.Users;
 import top.vita.mapper.UsersMapper;
+import top.vita.service.MsgService;
 import top.vita.service.UsersService;
 import top.vita.utils.DateUtil;
 import top.vita.utils.DesensitizationUtil;
@@ -30,6 +32,8 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
 
     @Autowired
     private Sid sid;
+    @Autowired
+    private MsgService msgService;
 
     private static final String USER_FACE1 = "https://learn-1312191491.cos.ap-beijing.myqcloud.com/img%2F%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%2F%E5%A4%B4%E5%83%8F%2F9.jpg";
 
@@ -110,6 +114,7 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
                 .count() == 2;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public Users updateUserInfo(UpdatedUserBO updatedUserBO) {
         Users users = new Users();
         BeanUtils.copyProperties(updatedUserBO, users);
