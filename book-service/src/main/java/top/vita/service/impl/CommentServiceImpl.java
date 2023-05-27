@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.vita.bo.CommentBO;
-import top.vita.bo.VlogBO;
 import top.vita.enums.MessageEnum;
+import top.vita.mo.MessageContent;
 import top.vita.pojo.Comment;
 import top.vita.mapper.CommentMapper;
 import top.vita.pojo.Vlog;
@@ -52,7 +52,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     public CommentVO createComment(CommentBO commentBO) {
         Comment comment = new Comment();
         BeanUtils.copyProperties(commentBO, comment);
-        comment.setId(sid.nextShort());
+        String commentId = sid.nextShort();
+        comment.setId(commentId);
         comment.setLikeCounts(0);
         comment.setCreateTime(new Date());
         save(comment);
@@ -65,11 +66,11 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         // 发送消息给被评论的博主
         String cover = vlogService.getCoverById(commentVO.getVlogId());
 
-        Map<String, Object> map = new HashMap<>();
-        map.put("vlogCover", cover);
-        map.put("vlogId", commentVO.getVlogId());
-        map.put("commentId", commentVO.getCommentId());
-        map.put("commentContent", commentVO.getContent());
+        MessageContent messageContent = new MessageContent();
+        messageContent.setVlogId(commentVO.getVlogId());
+        messageContent.setVlogCover(cover);
+        messageContent.setCommentId(commentId);
+        messageContent.setCommentContent(commentVO.getContent());
 
         Integer type = MessageEnum.COMMENT_VLOG.type;
         if (StringUtils.isNotBlank(commentVO.getFatherCommentId()) &&
@@ -80,9 +81,96 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         msgService.createMsg(commentVO.getCommentUserId(),
                              commentVO.getVlogerId(),
                              type,
-                             map);
+                             messageContent);
         return commentVO;
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteComment(String commentUserId,
+                              String commentId,
+                              String vlogId) {
+        // 减少redis中存放的评论数量
+        redis.decrement(REDIS_VLOG_COMMENT_COUNTS + ":" + vlogId, 1);
+
+        // 清除消息
+        Vlog vlog = vlogService.lambdaQuery()
+                .eq(Vlog::getId, vlogId)
+                .select(Vlog::getCover, Vlog::getVlogerId)
+                .one();
+        Comment comment = lambdaQuery()
+                .eq(Comment::getId, commentId)
+                .select(Comment::getContent, Comment::getFatherCommentId)
+                .one();
+        MessageContent messageContent = new MessageContent();
+        messageContent.setVlogId(vlogId);
+        messageContent.setVlogCover(vlog.getCover());
+        messageContent.setCommentId(commentId);
+        messageContent.setCommentContent(comment.getContent());
+
+        Integer type = MessageEnum.COMMENT_VLOG.type;
+        if (StringUtils.isNotBlank(comment.getFatherCommentId()) &&
+                !comment.getFatherCommentId().equals("0")){
+            type = MessageEnum.REPLY_YOU.type;
+        }
+
+        msgService.deleteMsg(commentUserId,
+                                 vlog.getVlogerId(),
+                                 type,
+                                 messageContent);
+
+        lambdaUpdate()
+                .eq(Comment::getCommentUserId, commentUserId)
+                .eq(Comment::getId, commentId)
+                .remove();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void likeComment(String commentId, String userId) {
+        redis.increment(REDIS_VLOG_COMMENT_LIKED_COUNTS + ":" + commentId, 1);
+        redis.set(REDIS_USER_LIKE_COMMENT + ":" + userId + ":" + commentId, "1");
+
+        // 发送点赞消息
+        Comment comment = lambdaQuery()
+                .eq(Comment::getId, commentId)
+                .select(Comment::getVlogId, Comment::getCommentUserId)
+                .one();
+        String cover = vlogService.getCoverById(comment.getVlogId());
+
+        MessageContent messageContent = new MessageContent();
+        messageContent.setVlogId(comment.getVlogId());
+        messageContent.setVlogCover(cover);
+        messageContent.setCommentId(commentId);
+
+        msgService.createMsg(userId,
+                             comment.getCommentUserId(),
+                             MessageEnum.LIKE_COMMENT.type,
+                             messageContent);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void unlikeComment(String commentId, String userId) {
+        redis.decrement(REDIS_VLOG_COMMENT_LIKED_COUNTS + ":" + commentId, 1);
+        redis.del(REDIS_USER_LIKE_COMMENT + ":" + userId + ":" + commentId);
+
+        // 清除点赞消息
+        Comment comment = lambdaQuery()
+                .eq(Comment::getId, commentId)
+                .select(Comment::getCommentUserId, Comment::getVlogId)
+                .one();
+        String cover = vlogService.getCoverById(comment.getVlogId());
+        MessageContent messageContent = new MessageContent();
+        messageContent.setVlogId(comment.getVlogId());
+        messageContent.setVlogCover(cover);
+        messageContent.setCommentId(commentId);
+        msgService.deleteMsg(userId,
+                                 comment.getCommentUserId(),
+                                 MessageEnum.LIKE_COMMENT.type,
+                                 messageContent);
+    }
+
 
     @Override
     public Integer getVlogCommentCountFromRedis(String vlogId) {
@@ -120,48 +208,6 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             return 0;
         }
         return Integer.parseInt(count);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void deleteComment(String commentUserId, String commentId, String vlogId) {
-        lambdaUpdate()
-                .eq(Comment::getCommentUserId, commentUserId)
-                .eq(Comment::getId, commentId)
-                .remove();
-        // 减少redis中存放的评论数量
-        redis.decrement(REDIS_VLOG_COMMENT_COUNTS + ":" + vlogId, 1);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void likeComment(String commentId, String userId) {
-        redis.increment(REDIS_VLOG_COMMENT_LIKED_COUNTS + ":" + commentId, 1);
-        redis.set(REDIS_USER_LIKE_COMMENT + ":" + userId + ":" + commentId, "1");
-
-        // 发送点赞消息
-        Comment comment = lambdaQuery()
-                .eq(Comment::getId, commentId)
-                .select(Comment::getVlogId, Comment::getCommentUserId)
-                .one();
-        String cover = vlogService.getCoverById(comment.getVlogId());
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("vlogId", comment.getVlogId());
-        map.put("vlogCover", cover);
-        map.put("commentId", commentId);
-
-        msgService.createMsg(userId,
-                             comment.getCommentUserId(),
-                             MessageEnum.LIKE_COMMENT.type,
-                             map);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void unlikeComment(String commentId, String userId) {
-        redis.decrement(REDIS_VLOG_COMMENT_LIKED_COUNTS + ":" + commentId, 1);
-        redis.del(REDIS_USER_LIKE_COMMENT + ":" + userId + ":" + commentId);
     }
 }
 

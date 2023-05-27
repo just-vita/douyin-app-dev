@@ -35,7 +35,7 @@ public class MessageMO {
     @Field("msgType")
     private Integer msgType;             // 消息类型 枚举
     @Field("msgContent")
-    private Map msgContent;              // 消息内容
+    private MessageContent msgContent;              // 消息内容
 
     @Field("createTime")
     @JsonFormat(locale = "zh", timezone = "Asia/Shanghai", pattern = "yyyy-MM-dd HH:mm:ss")

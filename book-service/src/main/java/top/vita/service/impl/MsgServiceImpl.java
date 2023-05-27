@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import top.vita.enums.MessageEnum;
+import top.vita.mo.MessageContent;
 import top.vita.mo.MessageMO;
 import top.vita.pojo.Users;
 import top.vita.repository.MessageRepository;
@@ -14,7 +15,6 @@ import top.vita.service.UsersService;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +38,7 @@ public class MsgServiceImpl implements MsgService {
     public void createMsg(String fromUserId,
                           String toUserId,
                           Integer type,
-                          Map msgContent) {
+                          MessageContent msgContent) {
         Users fromUser = usersService.getById(fromUserId);
 
         MessageMO messageMO = new MessageMO();
@@ -74,19 +74,21 @@ public class MsgServiceImpl implements MsgService {
 
             if (messageMO.getMsgType() != null && MessageEnum.FOLLOW_YOU.type.equals(messageMO.getMsgType())){
                 // 设置是否互关
-                Map map = messageMO.getMsgContent();
-                if (map == null) {
-                    map = new HashMap();
-                }
+                MessageContent msgContent = messageMO.getMsgContent();
                 boolean isFollowed = fansService.isFollowed(userId, messageMO.getFromUserId());
                 if (isFollowed) {
-                    map.put("isFriend", true);
+                    msgContent.setFriend(true);
                 } else {
-                    map.put("isFriend", false);
+                    msgContent.setFriend(false);
                 }
-                messageMO.setMsgContent(map);
+                messageMO.setMsgContent(msgContent);
             }
         }
         return list;
+    }
+
+    @Override
+    public void deleteMsg(String fromUserId, String toUserId, Integer type, MessageContent messageContent) {
+        messageRepository.deleteAllByFromUserIdAndToUserIdAndMsgTypeAndMsgContent(fromUserId, toUserId, type, messageContent);
     }
 }

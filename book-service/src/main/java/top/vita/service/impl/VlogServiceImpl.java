@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import top.vita.bo.VlogBO;
 import top.vita.enums.MessageEnum;
 import top.vita.enums.YesOrNo;
+import top.vita.mo.MessageContent;
 import top.vita.pojo.MyLikedVlog;
 import top.vita.pojo.Vlog;
 import top.vita.mapper.VlogMapper;
@@ -22,7 +23,6 @@ import top.vita.service.VlogService;
 import top.vita.utils.PagedGridResult;
 import top.vita.utils.RedisOperator;
 import top.vita.vo.IndexVlogVO;
-import top.vita.vo.VlogerVO;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -216,13 +216,15 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         // 保存用户和视频的点赞关系
         redis.set(REDIS_USER_LIKE_VLOG + ":" + userId + ":" + vlogId, "1");
 
-        String cover = getCoverById(vlogId);
-
         // 发送消息给被点赞的博主
-        Map<String, Object> map = new HashMap<>();
-        map.put("vlogId", vlogId);
-        map.put("vlogCover", cover);
-        msgService.createMsg(userId, vlogerId, MessageEnum.LIKE_VLOG.type, map);
+        String cover = getCoverById(vlogId);
+        MessageContent messageContent = new MessageContent();
+        messageContent.setVlogId(vlogId);
+        messageContent.setVlogCover(cover);
+        msgService.createMsg(userId,
+                             vlogerId,
+                             MessageEnum.LIKE_VLOG.type,
+                             messageContent);
     }
 
     @Override
@@ -236,8 +238,18 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         // 增加视频总赞数和博主总赞数
         redis.decrement(REDIS_VLOGER_BE_LIKED_COUNTS + ":" + vlogerId, 1);
         redis.decrement(REDIS_VLOG_BE_LIKED_COUNTS + ":" + vlogId, 1);
-        // 保存用户和视频的点赞关系
+        // 清除用户和视频的点赞关系
         redis.del(REDIS_USER_LIKE_VLOG + ":" + userId + ":" + vlogId);
+
+        // 清除消息内容
+        String cover = getCoverById(vlogId);
+        MessageContent messageContent = new MessageContent();
+        messageContent.setVlogId(vlogId);
+        messageContent.setVlogCover(cover);
+        msgService.deleteMsg(userId,
+                                 vlogerId,
+                                 MessageEnum.LIKE_VLOG.type,
+                                 messageContent);
     }
 }
 

@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.vita.enums.MessageEnum;
 import top.vita.enums.YesOrNo;
+import top.vita.mo.MessageContent;
+import top.vita.pojo.Comment;
 import top.vita.pojo.Fans;
 import top.vita.mapper.FansMapper;
 import top.vita.service.FansService;
@@ -79,6 +81,34 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
         msgService.createMsg(myId, toId, MessageEnum.FOLLOW_YOU.type, null);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void doCancel(String myId, String toId) {
+        // 判断对方是否是我的粉丝
+        boolean flag = isFollowed(toId, myId);
+        if (flag){
+            // 将对方的互关状态抹除
+            lambdaUpdate()
+                    .eq(Fans::getFanId, toId)
+                    .eq(Fans::getVlogerId, myId)
+                    .set(Fans::getIsFanFriendOfMine, YesOrNo.NO.type)
+                    .update();
+        }
+        // 删除我的关注记录
+        lambdaUpdate()
+                .eq(Fans::getFanId, myId)
+                .eq(Fans::getVlogerId, toId)
+                .remove();
+        // 将关注/粉丝量进行自减
+        redis.decrement(REDIS_MY_FOLLOWS_COUNTS + ":" + myId, 1);
+        redis.decrement(REDIS_MY_FANS_COUNTS+ ":" + toId, 1);
+        // 删除互关状态
+        redis.del(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + myId + ":" + toId);
+
+        // 清除关注消息
+        msgService.deleteMsg(myId, toId, MessageEnum.FOLLOW_YOU.type, null);
+    }
+
     /**
      * 判断对方是否是我的粉丝
      */
@@ -115,29 +145,5 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
         return setterPagedGrid(list, page);
     }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void doCancel(String myId, String toId) {
-        // 判断对方是否是我的粉丝
-        boolean flag = isFollowed(toId, myId);
-        if (flag){
-            // 将对方的互关状态抹除
-            lambdaUpdate()
-                    .eq(Fans::getFanId, toId)
-                    .eq(Fans::getVlogerId, myId)
-                    .set(Fans::getIsFanFriendOfMine, YesOrNo.NO.type)
-                    .update();
-        }
-        // 删除我的关注记录
-        lambdaUpdate()
-                .eq(Fans::getFanId, myId)
-                .eq(Fans::getVlogerId, toId)
-                .remove();
-        // 将关注/粉丝量进行自减
-        redis.decrement(REDIS_MY_FOLLOWS_COUNTS + ":" + myId, 1);
-        redis.decrement(REDIS_MY_FANS_COUNTS+ ":" + toId, 1);
-        // 删除互关状态
-        redis.del(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + myId + ":" + toId);
-    }
 }
 
