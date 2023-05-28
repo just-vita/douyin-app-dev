@@ -39,19 +39,6 @@ public class MsgServiceImpl implements MsgService {
     private FansService fansService;
 
     @Override
-    public void createMsg(MessageMO messageMO) {
-        Users fromUser = usersService.getById(messageMO.getFromUserId());
-
-        messageMO.setFromNickname(fromUser.getNickname());
-        messageMO.setFromFace(fromUser.getFace());
-
-        // 直接处理时间
-        messageMO.setCreateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-
-        messageRepository.save(messageMO);
-    }
-
-    @Override
     public List<MessageMO> queryList(String userId, Integer page, Integer pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
         // 根据userId查询消息
@@ -71,15 +58,31 @@ public class MsgServiceImpl implements MsgService {
     }
 
     @Override
-    public void deleteMsg(String fromUserId, String toUserId, Integer type, String id) {
+    public void createMsg(MessageMO messageMO) {
+        Users fromUser = usersService.getById(messageMO.getFromUserId());
+
+        messageMO.setFromNickname(fromUser.getNickname());
+        messageMO.setFromFace(fromUser.getFace());
+
+        // 直接处理时间
+        messageMO.setCreateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+
+        messageRepository.save(messageMO);
+    }
+
+    @Override
+    public void deleteMsg(MessageMO messageMO) {
+        String fromUserId = messageMO.getFromUserId();
+        String toUserId = messageMO.getToUserId();
+        Integer type = messageMO.getMsgType();
         if (MessageEnum.FOLLOW_YOU.type.equals(type)) {
             messageRepository.deleteAllByFromUserIdAndToUserIdAndMsgType(fromUserId, toUserId, type);
         } else if (MessageEnum.LIKE_VLOG.type.equals(type)) {
-            messageRepository.deleteAllByFromUserIdAndToUserIdAndMsgTypeAndVlogId(fromUserId, toUserId, type, id);
+            messageRepository.deleteAllByFromUserIdAndToUserIdAndMsgTypeAndVlogId(fromUserId, toUserId, type, messageMO.getVlogId());
         } else if (MessageEnum.COMMENT_VLOG.type.equals(type) ||
                    MessageEnum.REPLY_YOU.type.equals(type) ||
                    MessageEnum.LIKE_COMMENT.type.equals(type)) {
-            messageRepository.deleteAllByFromUserIdAndToUserIdAndMsgTypeAndCommentId(fromUserId, toUserId, type, id);
+            messageRepository.deleteAllByFromUserIdAndToUserIdAndMsgTypeAndCommentId(fromUserId, toUserId, type, messageMO.getCommentId());
         }
     }
 }

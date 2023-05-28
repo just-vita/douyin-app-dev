@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import org.n3r.idworker.Sid;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,16 +19,17 @@ import top.vita.pojo.Vlog;
 import top.vita.service.CommentService;
 import top.vita.service.MsgService;
 import top.vita.service.VlogService;
+import top.vita.service.base.RabbitMQConfig;
+import top.vita.utils.JsonUtils;
 import top.vita.utils.PagedGridResult;
 import top.vita.utils.RedisOperator;
 import top.vita.vo.CommentVO;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static top.vita.service.base.BaseInfoProperties.*;
+import static top.vita.service.base.RabbitMQConfig.ADD_MSG_ROUTE;
+import static top.vita.service.base.RabbitMQConfig.DEL_MSG_ROUTE;
 
 /**
  * 评论表(Comment)表服务实现类
@@ -48,6 +50,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     private MsgService msgService;
     @Autowired
     private VlogService vlogService;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public CommentVO createComment(CommentBO commentBO) {
@@ -79,7 +83,12 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         messageMO.setVlogCover(cover);
         messageMO.setCommentId(commentId);
         messageMO.setCommentContent(commentVO.getContent());
-        msgService.createMsg(messageMO);
+        messageMO.setMsgType(MessageEnum.COMMENT_VLOG.type);
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_MSG,
+                ADD_MSG_ROUTE,
+                Objects.requireNonNull(JsonUtils.objectToJson(messageMO))
+        );
         return commentVO;
     }
 
@@ -108,10 +117,16 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             type = MessageEnum.REPLY_YOU.type;
         }
 
-        msgService.deleteMsg(commentUserId,
-                             vlogerId,
-                             type,
-                             commentId);
+        MessageMO messageMO = new MessageMO();
+        messageMO.setFromUserId(commentUserId);
+        messageMO.setToUserId(vlogerId);
+        messageMO.setCommentId(commentId);
+        messageMO.setMsgType(type);
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_MSG,
+                DEL_MSG_ROUTE,
+                Objects.requireNonNull(JsonUtils.objectToJson(messageMO))
+        );
 
         lambdaUpdate()
                 .eq(Comment::getCommentUserId, commentUserId)
@@ -131,7 +146,6 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .select(Comment::getVlogId, Comment::getCommentUserId)
                 .one();
         String cover = vlogService.getCoverById(comment.getVlogId());
-
         MessageMO messageMO = new MessageMO();
         messageMO.setVlogId(comment.getVlogId());
         messageMO.setVlogCover(cover);
@@ -139,7 +153,11 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         messageMO.setFromUserId(userId);
         messageMO.setToUserId(comment.getCommentUserId());
         messageMO.setMsgType(MessageEnum.LIKE_COMMENT.type);
-        msgService.createMsg(messageMO);
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_MSG,
+                ADD_MSG_ROUTE,
+                Objects.requireNonNull(JsonUtils.objectToJson(messageMO))
+        );
     }
 
     @Override
@@ -153,10 +171,18 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .eq(Comment::getId, commentId)
                 .select(Comment::getCommentUserId)
                 .one();
-        msgService.deleteMsg(userId,
-                             comment.getCommentUserId(),
-                             MessageEnum.LIKE_COMMENT.type,
-                             commentId);
+        // 发送消息给消息队列
+        MessageMO messageMO = new MessageMO();
+        messageMO.setFromUserId(userId);
+        messageMO.setToUserId(comment.getCommentUserId());
+        messageMO.setCommentId(commentId);
+        messageMO.setMsgType(MessageEnum.LIKE_COMMENT.type);
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_MSG,
+                DEL_MSG_ROUTE,
+                Objects.requireNonNull(JsonUtils.objectToJson(messageMO))
+        );
+
     }
 
 

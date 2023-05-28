@@ -2,7 +2,9 @@ package top.vita.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
+import org.checkerframework.checker.units.qual.A;
 import org.n3r.idworker.Sid;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,8 @@ import top.vita.pojo.Fans;
 import top.vita.mapper.FansMapper;
 import top.vita.service.FansService;
 import top.vita.service.MsgService;
+import top.vita.service.base.RabbitMQConfig;
+import top.vita.utils.JsonUtils;
 import top.vita.utils.PagedGridResult;
 import top.vita.utils.RedisOperator;
 import top.vita.vo.FansVO;
@@ -23,8 +27,11 @@ import top.vita.vo.VlogerVO;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static top.vita.service.base.BaseInfoProperties.*;
+import static top.vita.service.base.RabbitMQConfig.ADD_MSG_ROUTE;
+import static top.vita.service.base.RabbitMQConfig.DEL_MSG_ROUTE;
 
 /**
  * 粉丝表
@@ -45,6 +52,8 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
     private FansMapper fansMapper;
     @Autowired
     private MsgService msgService;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -83,7 +92,11 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
         messageMO.setFromUserId(myId);
         messageMO.setToUserId(toId);
         messageMO.setMsgType(MessageEnum.FOLLOW_YOU.type);
-        msgService.createMsg(messageMO);
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_MSG,
+                ADD_MSG_ROUTE,
+                Objects.requireNonNull(JsonUtils.objectToJson(messageMO))
+        );
     }
 
     @Override
@@ -111,7 +124,16 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans> implements Fa
         redis.del(REDIS_FANS_AND_VLOGGER_RELATIONSHIP + ":" + myId + ":" + toId);
 
         // 清除关注消息
-        msgService.deleteMsg(myId, toId, MessageEnum.FOLLOW_YOU.type, null);
+        // 发送消息给消息队列
+        MessageMO messageMO = new MessageMO();
+        messageMO.setFromUserId(myId);
+        messageMO.setToUserId(toId);
+        messageMO.setMsgType(MessageEnum.FOLLOW_YOU.type);
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_MSG,
+                DEL_MSG_ROUTE,
+                Objects.requireNonNull(JsonUtils.objectToJson(messageMO))
+        );
     }
 
     /**

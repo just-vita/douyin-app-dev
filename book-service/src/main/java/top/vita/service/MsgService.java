@@ -16,12 +16,10 @@ public interface MsgService {
 
     void createMsg(MessageMO messageMO);
 
+    void deleteMsg(MessageMO messageMO);
+
     List<MessageMO> queryList(String userId,
                               Integer page,
                               Integer pageSize);
 
-    void deleteMsg(String fromUserId,
-                   String toUserId,
-                   Integer type,
-                   String id);
 }

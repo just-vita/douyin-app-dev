@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.idworker.Sid;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,16 +22,17 @@ import top.vita.service.FansService;
 import top.vita.service.MsgService;
 import top.vita.service.MyLikedVlogService;
 import top.vita.service.VlogService;
+import top.vita.service.base.RabbitMQConfig;
+import top.vita.utils.JsonUtils;
 import top.vita.utils.PagedGridResult;
 import top.vita.utils.RedisOperator;
 import top.vita.vo.IndexVlogVO;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static top.vita.service.base.BaseInfoProperties.*;
+import static top.vita.service.base.RabbitMQConfig.ADD_MSG_ROUTE;
+import static top.vita.service.base.RabbitMQConfig.DEL_MSG_ROUTE;
 
 /**
  * 短视频表(Vlog)表服务实现类
@@ -53,6 +55,8 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
     private RedisOperator redis;
     @Autowired
     private MsgService msgService;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public void createVlog(VlogBO vlogBO) {
@@ -220,12 +224,17 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         // 发送消息给被点赞的博主
         String cover = getCoverById(vlogId);
         MessageMO messageMO = new MessageMO();
-        messageMO.setVlogId(vlogId);
-        messageMO.setVlogCover(cover);
         messageMO.setFromUserId(userId);
         messageMO.setToUserId(vlogerId);
+        messageMO.setVlogId(vlogId);
+        messageMO.setVlogCover(cover);
         messageMO.setMsgType(MessageEnum.LIKE_VLOG.type);
-        msgService.createMsg(messageMO);
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_MSG,
+                ADD_MSG_ROUTE,
+                Objects.requireNonNull(JsonUtils.objectToJson(messageMO))
+        );
+
     }
 
     @Override
@@ -242,11 +251,16 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog> implements Vl
         // 清除用户和视频的点赞关系
         redis.del(REDIS_USER_LIKE_VLOG + ":" + userId + ":" + vlogId);
 
-        // 清除消息内容
-        msgService.deleteMsg(userId,
-                             vlogerId,
-                             MessageEnum.LIKE_VLOG.type,
-                             vlogId);
+        MessageMO messageMO = new MessageMO();
+        messageMO.setFromUserId(userId);
+        messageMO.setToUserId(vlogerId);
+        messageMO.setVlogId(vlogId);
+        messageMO.setMsgType(MessageEnum.LIKE_VLOG.type);
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_MSG,
+                DEL_MSG_ROUTE,
+                Objects.requireNonNull(JsonUtils.objectToJson(messageMO))
+        );
     }
 }
 

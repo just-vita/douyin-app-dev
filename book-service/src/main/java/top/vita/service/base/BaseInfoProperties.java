@@ -50,4 +50,6 @@ public class BaseInfoProperties {
         gridResult.setTotal(pageList.getPages());
         return gridResult;
     }
+
+
 }
