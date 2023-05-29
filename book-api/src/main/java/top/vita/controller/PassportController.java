@@ -47,7 +47,7 @@ public class PassportController extends BaseInfoProperties {
         // 验证码五分钟过期
         redis.set(MOBILE_SMSCODE + ":" + mobile, code, 5 * 60);
         System.out.println(code);
-        return GraceJSONResult.ok();
+        return GraceJSONResult.ok(code);
     }
 
     @ApiOperation("登录验证接口")
